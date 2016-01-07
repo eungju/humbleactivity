@@ -1,5 +1,7 @@
 package humbleactivity.app;
 
+import rx.schedulers.Schedulers;
+
 import java.util.Collections;
 
 public class ChainComposer {
@@ -12,11 +14,13 @@ public class ChainComposer {
     }
 
     public void initialize() {
-        effectorService.listFilters().subscribe(filters -> {
-            view.setAvailableFilters(filters);
-            view.setChain(Collections.<Filter>emptyList());
-        }, throwable -> {
-            view.showErrorMessage(throwable.getMessage());
-        });
+        effectorService.listFilters()
+                .subscribeOn(Schedulers.io())
+                .subscribe(filters -> {
+                    view.setAvailableFilters(filters);
+                    view.setChain(Collections.<Filter>emptyList());
+                }, throwable -> {
+                    view.showErrorMessage(throwable.getMessage());
+                });
     }
 }

@@ -1,7 +1,9 @@
 package humbleactivity.app;
 
 import org.jmock.Expectations;
+import org.jmock.States;
 import org.jmock.integration.junit4.JUnitRuleMockery;
+import org.jmock.lib.concurrent.Synchroniser;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -12,31 +14,40 @@ import java.util.List;
 import rx.Observable;
 
 public class ChainComposerTest {
+    Synchroniser synchroniser = new Synchroniser();
     @Rule
-    public JUnitRuleMockery mockery = new JUnitRuleMockery();
+    public JUnitRuleMockery mockery = new JUnitRuleMockery() {{
+        setThreadingPolicy(synchroniser);
+    }};
     ChainComposerView view = mockery.mock(ChainComposerView.class);
     EffectorService effectorService = mockery.mock(EffectorService.class);
     ChainComposer dut = new ChainComposer(view, effectorService);
 
     @Test
-    public void initialization() {
+    public void initialization() throws InterruptedException {
         final List<Filter> filters = Arrays.asList(new Filter("Reverb"));
         final List<Filter> chain = Collections.emptyList();
+        final States states = mockery.states("listFilters");
         mockery.checking(new Expectations() {{
             oneOf(effectorService).listFilters(); will(returnValue(Observable.just(filters)));
             oneOf(view).setAvailableFilters(filters);
             oneOf(view).setChain(chain);
+            then(states.is("called"));
         }});
         dut.initialize();
+        synchroniser.waitUntil(states.is("called"));
     }
 
     @Test
-    public void initializationFailure() {
+    public void initializationFailure() throws InterruptedException {
         String errorMessage = "error";
+        final States states = mockery.states("listFilters");
         mockery.checking(new Expectations() {{
             oneOf(effectorService).listFilters(); will(returnValue(Observable.error(new IOException(errorMessage))));
             oneOf(view).showErrorMessage(errorMessage);
+            then(states.is("called"));
         }});
         dut.initialize();
+        synchroniser.waitUntil(states.is("called"));
     }
 }
