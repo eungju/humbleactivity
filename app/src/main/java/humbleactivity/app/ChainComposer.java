@@ -1,21 +1,26 @@
 package humbleactivity.app;
 
-import rx.schedulers.Schedulers;
+import rx.Scheduler;
 
 import java.util.Collections;
 
 public class ChainComposer {
     private final ChainComposerView view;
     private final EffectorService effectorService;
+    private final Scheduler ioScheduler;
+    private final Scheduler uiScheduler;
 
-    public ChainComposer(ChainComposerView view, EffectorService effectorService) {
+    public ChainComposer(ChainComposerView view, EffectorService effectorService, Scheduler ioScheduler, Scheduler uiScheduler) {
         this.view = view;
         this.effectorService = effectorService;
+        this.ioScheduler = ioScheduler;
+        this.uiScheduler = uiScheduler;
     }
 
     public void initialize() {
         effectorService.listFilters()
-                .subscribeOn(Schedulers.io())
+                .subscribeOn(ioScheduler)
+                .observeOn(uiScheduler)
                 .subscribe(filters -> {
                     view.setAvailableFilters(filters);
                     view.setChain(Collections.<Filter>emptyList());

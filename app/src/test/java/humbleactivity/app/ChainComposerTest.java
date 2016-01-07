@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import rx.Observable;
+import rx.schedulers.Schedulers;
 
 public class ChainComposerTest {
     Synchroniser synchroniser = new Synchroniser();
@@ -21,7 +22,7 @@ public class ChainComposerTest {
     }};
     ChainComposerView view = mockery.mock(ChainComposerView.class);
     EffectorService effectorService = mockery.mock(EffectorService.class);
-    ChainComposer dut = new ChainComposer(view, effectorService);
+    ChainComposer dut = new ChainComposer(view, effectorService, Schedulers.io(), Schedulers.immediate());
 
     @Test
     public void initialization() throws InterruptedException {
