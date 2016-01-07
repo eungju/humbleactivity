@@ -42,6 +42,9 @@ public class ChainComposer {
     }
 
     public void addToChain(int selectedItemPosition) {
+        if (selectedItemPosition < 0 || selectedItemPosition >= availableFilters.size()) {
+            return;
+        }
         Filter selected = availableFilters.get(selectedItemPosition);
         List<Filter> updated = new ArrayList<>();
         updated.addAll(availableFilters.subList(0, selectedItemPosition));
@@ -53,6 +56,9 @@ public class ChainComposer {
     }
 
     public void removeFromChain(int selectedItemPosition) {
+        if (selectedItemPosition < 0 || selectedItemPosition >= chain.size()) {
+            return;
+        }
         Filter selected = chain.get(selectedItemPosition);
         List<Filter> updated = new ArrayList<>();
         updated.addAll(chain.subList(0, selectedItemPosition));
