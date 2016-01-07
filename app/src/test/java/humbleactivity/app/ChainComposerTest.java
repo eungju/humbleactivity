@@ -60,7 +60,7 @@ public class ChainComposerTest {
             oneOf(view).setAvailableFilters(filters.subList(1, filters.size()));
             oneOf(view).setChain(filters.subList(0, 1));
         }});
-        dut.availableFilters = filters;
+        dut.availableFilters = new ArrayList<>(filters);
         dut.chain = new ArrayList<>();
         dut.addToChain(0);
     }

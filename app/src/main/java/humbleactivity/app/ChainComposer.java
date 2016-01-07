@@ -32,7 +32,7 @@ public class ChainComposer {
                 .subscribeOn(ioScheduler)
                 .observeOn(uiScheduler)
                 .subscribe(filters -> {
-                    availableFilters = filters;
+                    availableFilters = new ArrayList<>(filters);
                     chain = new ArrayList<>();
                     view.setAvailableFilters(filters);
                     view.setChain(Collections.<Filter>emptyList());
@@ -42,30 +42,26 @@ public class ChainComposer {
     }
 
     public void addToChain(int selectedItemPosition) {
-        if (selectedItemPosition < 0 || selectedItemPosition >= availableFilters.size()) {
-            return;
+        if (move(availableFilters, chain, selectedItemPosition)) {
+            view.setAvailableFilters(availableFilters);
+            view.setChain(chain);
         }
-        Filter selected = availableFilters.get(selectedItemPosition);
-        List<Filter> updated = new ArrayList<>();
-        updated.addAll(availableFilters.subList(0, selectedItemPosition));
-        updated.addAll(availableFilters.subList(selectedItemPosition + 1, availableFilters.size()));
-        availableFilters = updated;
-        chain.add(selected);
-        view.setAvailableFilters(availableFilters);
-        view.setChain(chain);
     }
 
     public void removeFromChain(int selectedItemPosition) {
-        if (selectedItemPosition < 0 || selectedItemPosition >= chain.size()) {
-            return;
+        if (move(chain, availableFilters, selectedItemPosition)) {
+            view.setAvailableFilters(availableFilters);
+            view.setChain(chain);
         }
-        Filter selected = chain.get(selectedItemPosition);
-        List<Filter> updated = new ArrayList<>();
-        updated.addAll(chain.subList(0, selectedItemPosition));
-        updated.addAll(chain.subList(selectedItemPosition + 1, chain.size()));
-        availableFilters.add(selected);
-        chain = updated;
-        view.setAvailableFilters(availableFilters);
-        view.setChain(chain);
+    }
+
+    static boolean move(List<Filter> from, List<Filter> to, int index) {
+        if (index < 0 || index >= from.size()) {
+            return false;
+        }
+        Filter selected = from.get(index);
+        to.add(selected);
+        from.remove(index);
+        return true;
     }
 }
