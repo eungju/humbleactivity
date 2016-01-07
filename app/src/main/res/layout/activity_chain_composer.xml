@@ -8,11 +8,18 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+        <Button
+                android:id="@+id/refresh"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:text="Refresh"/>
+
         <ListView
                 android:id="@+id/available_filters"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_alignParentTop="true"
+                android:layout_below="@+id/refresh"
                 android:layout_above="@+id/filter_actions"
                 android:choiceMode="singleChoice"
                 android:listSelector="@android:color/darker_gray" />

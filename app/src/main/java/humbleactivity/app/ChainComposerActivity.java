@@ -23,12 +23,6 @@ public class ChainComposerActivity extends Activity implements ChainComposerView
     ListView chainView;
     ArrayAdapter chainAdapter;
 
-    @Bind(R.id.add_to_chain)
-    Button addToChainView;
-
-    @Bind(R.id.remove_from_chain)
-    Button removeFromChainView;
-
     ChainComposer presenter;
 
     @Override
@@ -45,6 +39,11 @@ public class ChainComposerActivity extends Activity implements ChainComposerView
 
         presenter = new ChainComposer(this);
         presenter.initialize();
+    }
+
+    @OnClick(R.id.refresh)
+    public void onRefresh(View view) {
+        presenter.refresh();
     }
 
     @OnClick(R.id.add_to_chain)

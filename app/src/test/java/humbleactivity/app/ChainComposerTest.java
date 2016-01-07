@@ -78,4 +78,19 @@ public class ChainComposerTest {
         dut.chain.addAll(filters.subList(1, filters.size()));
         dut.removeFromChain(0);
     }
+
+    @Test
+    public void refresh() throws InterruptedException {
+        final List<Filter> filters = Arrays.asList(new Filter("Reverb"));
+        final List<Filter> chain = Collections.emptyList();
+        final States states = mockery.states("listFilters");
+        mockery.checking(new Expectations() {{
+            oneOf(effectorService).listFilters(); will(returnValue(Observable.just(filters)));
+            oneOf(view).setAvailableFilters(filters);
+            oneOf(view).setChain(chain);
+            then(states.is("called"));
+        }});
+        dut.refresh();
+        synchroniser.waitUntil(states.is("called"), 1000);
+    }
 }

@@ -28,6 +28,10 @@ public class ChainComposer {
     }
 
     public void initialize() {
+        refresh();
+    }
+
+    public void refresh() {
         effectorService.listFilters()
                 .subscribeOn(ioScheduler)
                 .observeOn(uiScheduler)
