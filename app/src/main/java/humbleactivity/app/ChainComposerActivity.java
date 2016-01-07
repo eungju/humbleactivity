@@ -26,6 +26,9 @@ public class ChainComposerActivity extends Activity implements ChainComposerView
     @Bind(R.id.add_to_chain)
     Button addToChainView;
 
+    @Bind(R.id.remove_from_chain)
+    Button removeFromChainView;
+
     ChainComposer presenter;
 
     @Override
@@ -36,7 +39,6 @@ public class ChainComposerActivity extends Activity implements ChainComposerView
 
         availableFiltersAdapter = new ArrayAdapter(this, R.layout.view_filter_item);
         availableFiltersView.setAdapter(availableFiltersAdapter);
-        availableFiltersView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 
         chainAdapter = new ArrayAdapter(this, R.layout.view_filter_item);
         chainView.setAdapter(chainAdapter);
@@ -47,7 +49,18 @@ public class ChainComposerActivity extends Activity implements ChainComposerView
 
     @OnClick(R.id.add_to_chain)
     public void onAddToChain(View view) {
-        presenter.addToChain(availableFiltersView.getCheckedItemPosition());
+        int position = availableFiltersView.getCheckedItemPosition();
+        if (position != ListView.INVALID_POSITION) {
+            presenter.addToChain(position);
+        }
+    }
+
+    @OnClick(R.id.remove_from_chain)
+    public void onRemoveFromChain(View view) {
+        int position = chainView.getCheckedItemPosition();
+        if (position != ListView.INVALID_POSITION) {
+            presenter.removeFromChain(position);
+        }
     }
 
     @Override

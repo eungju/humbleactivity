@@ -27,6 +27,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Add"/>
+            <Button
+                    android:id="@+id/remove_from_chain"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Remove"/>
         </LinearLayout>
 
         <ListView

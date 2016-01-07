@@ -51,4 +51,15 @@ public class ChainComposer {
         view.setAvailableFilters(availableFilters);
         view.setChain(chain);
     }
+
+    public void removeFromChain(int selectedItemPosition) {
+        Filter selected = chain.get(selectedItemPosition);
+        List<Filter> updated = new ArrayList<>();
+        updated.addAll(chain.subList(0, selectedItemPosition));
+        updated.addAll(chain.subList(selectedItemPosition + 1, chain.size()));
+        availableFilters.add(selected);
+        chain = updated;
+        view.setAvailableFilters(availableFilters);
+        view.setChain(chain);
+    }
 }

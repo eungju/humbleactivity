@@ -64,4 +64,18 @@ public class ChainComposerTest {
         dut.chain = new ArrayList<>();
         dut.addToChain(0);
     }
+
+    @Test
+    public void removeFromChain() {
+        final List<Filter> filters = Arrays.asList(new Filter("Reverb"), new Filter("Distortion"));
+        mockery.checking(new Expectations() {{
+            oneOf(view).setAvailableFilters(filters);
+            oneOf(view).setChain(filters.subList(0, 0));
+        }});
+        dut.availableFilters = new ArrayList<>();
+        dut.availableFilters.addAll(filters.subList(0, 1));
+        dut.chain = new ArrayList<>();
+        dut.chain.addAll(filters.subList(1, filters.size()));
+        dut.removeFromChain(0);
+    }
 }
