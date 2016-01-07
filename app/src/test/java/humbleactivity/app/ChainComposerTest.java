@@ -8,6 +8,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -50,5 +51,17 @@ public class ChainComposerTest {
         }});
         dut.initialize();
         synchroniser.waitUntil(states.is("called"));
+    }
+
+    @Test
+    public void addToChain() {
+        final List<Filter> filters = Arrays.asList(new Filter("Reverb"), new Filter("Distortion"));
+        mockery.checking(new Expectations() {{
+            oneOf(view).setAvailableFilters(filters.subList(1, filters.size()));
+            oneOf(view).setChain(filters.subList(0, 1));
+        }});
+        dut.availableFilters = filters;
+        dut.chain = new ArrayList<>();
+        dut.addToChain(0);
     }
 }

@@ -2,12 +2,14 @@ package humbleactivity.app;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,12 +36,18 @@ public class ChainComposerActivity extends Activity implements ChainComposerView
 
         availableFiltersAdapter = new ArrayAdapter(this, R.layout.view_filter_item);
         availableFiltersView.setAdapter(availableFiltersAdapter);
+        availableFiltersView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 
         chainAdapter = new ArrayAdapter(this, R.layout.view_filter_item);
         chainView.setAdapter(chainAdapter);
 
         presenter = new ChainComposer(this);
         presenter.initialize();
+    }
+
+    @OnClick(R.id.add_to_chain)
+    public void onAddToChain(View view) {
+        presenter.addToChain(availableFiltersView.getCheckedItemPosition());
     }
 
     @Override
