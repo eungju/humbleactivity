@@ -15,6 +15,8 @@ public class ChainComposer {
         effectorService.listFilters().subscribe(filters -> {
             view.setAvailableFilters(filters);
             view.setChain(Collections.<Filter>emptyList());
+        }, throwable -> {
+            view.showErrorMessage(throwable.getMessage());
         });
     }
 }

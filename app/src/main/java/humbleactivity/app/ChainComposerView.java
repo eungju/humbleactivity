@@ -6,4 +6,6 @@ public interface ChainComposerView {
     void setAvailableFilters(List<Filter> filters);
 
     void setChain(List<Filter> chain);
+
+    void showErrorMessage(String message);
 }

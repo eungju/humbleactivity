@@ -5,6 +5,7 @@ import org.jmock.integration.junit4.JUnitRuleMockery;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -18,13 +19,23 @@ public class ChainComposerTest {
     ChainComposer dut = new ChainComposer(view, effectorService);
 
     @Test
-    public void initialize() {
+    public void initialization() {
         final List<Filter> filters = Arrays.asList(new Filter("Reverb"));
         final List<Filter> chain = Collections.emptyList();
         mockery.checking(new Expectations() {{
             oneOf(effectorService).listFilters(); will(returnValue(Observable.just(filters)));
             oneOf(view).setAvailableFilters(filters);
             oneOf(view).setChain(chain);
+        }});
+        dut.initialize();
+    }
+
+    @Test
+    public void initializationFailure() {
+        String errorMessage = "error";
+        mockery.checking(new Expectations() {{
+            oneOf(effectorService).listFilters(); will(returnValue(Observable.error(new IOException(errorMessage))));
+            oneOf(view).showErrorMessage(errorMessage);
         }});
         dut.initialize();
     }
