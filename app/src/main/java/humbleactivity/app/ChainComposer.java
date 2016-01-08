@@ -45,6 +45,10 @@ public class ChainComposer {
         }));
     }
 
+    public void destroy() {
+        subscriptions.unsubscribe();
+    }
+
     public void initialize() {
         refreshRelay.call(null);
     }
@@ -75,9 +79,5 @@ public class ChainComposer {
         to.add(selected);
         from.remove(index);
         return true;
-    }
-
-    public void destroy() {
-        subscriptions.unsubscribe();
     }
 }
