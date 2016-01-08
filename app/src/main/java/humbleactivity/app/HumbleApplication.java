@@ -2,6 +2,7 @@ package humbleactivity.app;
 
 import android.app.Application;
 import android.content.Context;
+
 import timber.log.Timber;
 
 public class HumbleApplication extends Application {

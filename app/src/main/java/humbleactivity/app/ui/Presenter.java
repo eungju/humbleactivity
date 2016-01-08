@@ -1,4 +1,4 @@
-package humbleactivity.app;
+package humbleactivity.app.ui;
 
 import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;

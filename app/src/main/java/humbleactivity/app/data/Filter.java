@@ -1,4 +1,4 @@
-package humbleactivity.app;
+package humbleactivity.app.data;
 
 import java.util.Objects;
 

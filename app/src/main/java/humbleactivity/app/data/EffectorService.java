@@ -1,4 +1,4 @@
-package humbleactivity.app;
+package humbleactivity.app.data;
 
 import retrofit2.http.GET;
 import rx.Observable;

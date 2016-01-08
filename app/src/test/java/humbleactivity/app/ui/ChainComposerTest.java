@@ -1,5 +1,8 @@
-package humbleactivity.app;
+package humbleactivity.app.ui;
 
+import humbleactivity.app.RxScheduling;
+import humbleactivity.app.data.EffectorService;
+import humbleactivity.app.data.Filter;
 import org.jmock.Expectations;
 import org.jmock.States;
 import org.jmock.integration.junit4.JUnitRuleMockery;

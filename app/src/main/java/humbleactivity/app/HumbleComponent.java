@@ -1,6 +1,8 @@
 package humbleactivity.app;
 
 import dagger.Component;
+import humbleactivity.app.data.DataModule;
+import humbleactivity.app.ui.ChainComposerActivity;
 
 import javax.inject.Singleton;
 
