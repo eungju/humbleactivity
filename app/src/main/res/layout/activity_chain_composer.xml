@@ -21,8 +21,7 @@
                 android:layout_height="match_parent"
                 android:layout_below="@+id/refresh"
                 android:layout_above="@+id/filter_actions"
-                android:choiceMode="singleChoice"
-                android:listSelector="@android:color/darker_gray" />
+                android:choiceMode="singleChoice" />
 
         <LinearLayout
                 android:id="@+id/filter_actions"
@@ -45,10 +44,27 @@
                 android:id="@+id/chain"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_alignParentBottom="true"
                 android:layout_below="@+id/filter_actions"
-                android:choiceMode="singleChoice"
-                android:listSelector="@android:color/darker_gray" />
+                android:layout_above="@+id/chain_actions"
+                android:choiceMode="singleChoice" />
+
+        <LinearLayout
+                android:id="@+id/chain_actions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_alignParentBottom="true">
+            <Button
+                    android:id="@+id/move_up"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Move Up"/>
+            <Button
+                    android:id="@+id/move_down"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Move Down"/>
+        </LinearLayout>
 
     </RelativeLayout>
 

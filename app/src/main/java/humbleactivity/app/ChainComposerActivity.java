@@ -2,6 +2,7 @@ package humbleactivity.app;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -13,7 +14,7 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChainComposerActivity extends Activity implements ChainComposer.View {
+public class ChainComposerActivity extends Activity implements ChainComposer.ChainComposerView {
     @Bind(R.id.available_filters)
     ListView availableFiltersView;
     ArrayAdapter availableFiltersAdapter;
@@ -52,12 +53,12 @@ public class ChainComposerActivity extends Activity implements ChainComposer.Vie
     }
 
     @OnClick(R.id.refresh)
-    public void onRefresh(android.view.View view) {
+    public void onRefresh(View view) {
         presenter.refresh();
     }
 
     @OnClick(R.id.add_to_chain)
-    public void onAddToChain(android.view.View view) {
+    public void onAddToChain(View view) {
         int position = availableFiltersView.getCheckedItemPosition();
         if (position != ListView.INVALID_POSITION) {
             presenter.addToChain(position);
@@ -65,10 +66,26 @@ public class ChainComposerActivity extends Activity implements ChainComposer.Vie
     }
 
     @OnClick(R.id.remove_from_chain)
-    public void onRemoveFromChain(android.view.View view) {
+    public void onRemoveFromChain(View view) {
         int position = chainView.getCheckedItemPosition();
         if (position != ListView.INVALID_POSITION) {
             presenter.removeFromChain(position);
+        }
+    }
+
+    @OnClick(R.id.move_up)
+    public void onMoveUp(View view) {
+        int position = chainView.getCheckedItemPosition();
+        if (position != ListView.INVALID_POSITION) {
+            presenter.moveUpFilter(position);
+        }
+    }
+
+    @OnClick(R.id.move_down)
+    public void onMoveDown(View view) {
+        int position = chainView.getCheckedItemPosition();
+        if (position != ListView.INVALID_POSITION) {
+            presenter.moveDownFilter(position);
         }
     }
 
@@ -95,5 +112,13 @@ public class ChainComposerActivity extends Activity implements ChainComposer.Vie
     @Override
     public void showErrorMessage(String message) {
         Toast.makeText(this, message, Toast.LENGTH_LONG);
+    }
+
+    @Override
+    public void swapFilterInChain(int from, int to) {
+        Object picked = chainAdapter.getItem(from);
+        chainAdapter.remove(picked);
+        chainAdapter.insert(picked, to);
+        chainView.setItemChecked(to, true);
     }
 }

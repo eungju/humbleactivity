@@ -8,7 +8,7 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChainComposer extends Presenter<ChainComposer.View> {
+public class ChainComposer extends Presenter<ChainComposer.ChainComposerView> {
     private final EffectorService effectorService;
     private final RxScheduling rxScheduling;
     private final PublishRelay<Void> refreshRelay = PublishRelay.create();
@@ -22,7 +22,7 @@ public class ChainComposer extends Presenter<ChainComposer.View> {
         Timber.d("Created");
     }
 
-    public void attach(View view) {
+    public void attach(ChainComposerView view) {
         super.attach(view);
         subscriptions.add(refreshRelay.flatMap(none ->
                 rxScheduling.httpCall(effectorService.listFilters())
@@ -70,11 +70,31 @@ public class ChainComposer extends Presenter<ChainComposer.View> {
         return true;
     }
 
-    public interface View extends PassiveView {
+    public void moveUpFilter(int index) {
+        if (index < 1 || index >= chain.size()) {
+            return;
+        }
+        Filter picked = chain.remove(index);
+        chain.add(index - 1, picked);
+        view.swapFilterInChain(index, index - 1);
+    }
+
+    public void moveDownFilter(int index) {
+        if (index < 0 || index >= chain.size() - 1) {
+            return;
+        }
+        Filter picked = chain.remove(index);
+        chain.add(index + 1, picked);
+        view.swapFilterInChain(index, index + 1);
+    }
+
+    public interface ChainComposerView extends PassiveView {
         void setAvailableFilters(List<Filter> filters);
 
         void setChain(List<Filter> chain);
 
         void showErrorMessage(String message);
+
+        void swapFilterInChain(int from, int to);
     }
 }

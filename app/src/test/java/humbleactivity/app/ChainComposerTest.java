@@ -22,7 +22,7 @@ public class ChainComposerTest {
     public JUnitRuleMockery mockery = new JUnitRuleMockery() {{
         setThreadingPolicy(synchroniser);
     }};
-    ChainComposer.View view = mockery.mock(ChainComposer.View.class);
+    ChainComposer.ChainComposerView view = mockery.mock(ChainComposer.ChainComposerView.class);
     EffectorService effectorService = mockery.mock(EffectorService.class);
     ChainComposer dut = new ChainComposer(effectorService, new RxScheduling(Schedulers.io(), Schedulers.immediate()));
 
@@ -98,5 +98,25 @@ public class ChainComposerTest {
         }});
         dut.refresh();
         synchroniser.waitUntil(states.is("called"), 1000);
+    }
+
+    @Test
+    public void moveUpFilter() {
+        final List<Filter> filters = Arrays.asList(new Filter("Reverb"), new Filter("Distortion"));
+        mockery.checking(new Expectations() {{
+            oneOf(view).swapFilterInChain(1, 0);
+        }});
+        dut.chain = new ArrayList<>(filters);
+        dut.moveUpFilter(1);
+    }
+
+    @Test
+    public void moveDownFilter() {
+        final List<Filter> filters = Arrays.asList(new Filter("Reverb"), new Filter("Distortion"));
+        mockery.checking(new Expectations() {{
+            oneOf(view).swapFilterInChain(0, 1);
+        }});
+        dut.chain = new ArrayList<>(filters);
+        dut.moveDownFilter(0);
     }
 }
