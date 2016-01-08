@@ -4,16 +4,17 @@ import org.jmock.Expectations;
 import org.jmock.States;
 import org.jmock.integration.junit4.JUnitRuleMockery;
 import org.jmock.lib.concurrent.Synchroniser;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import rx.Observable;
+import rx.schedulers.Schedulers;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import rx.Observable;
-import rx.schedulers.Schedulers;
 
 public class ChainComposerTest {
     Synchroniser synchroniser = new Synchroniser();
@@ -23,7 +24,12 @@ public class ChainComposerTest {
     }};
     ChainComposer.View view = mockery.mock(ChainComposer.View.class);
     EffectorService effectorService = mockery.mock(EffectorService.class);
-    ChainComposer dut = new ChainComposer(view, effectorService, Schedulers.io(), Schedulers.immediate());
+    ChainComposer dut = new ChainComposer(effectorService, new RxScheduling(Schedulers.io(), Schedulers.immediate()));
+
+    @Before
+    public void setUp() {
+        dut.attach(view);
+    }
 
     @Test
     public void initialization() throws InterruptedException {

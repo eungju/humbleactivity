@@ -2,34 +2,30 @@ package humbleactivity.app;
 
 import com.jakewharton.rxrelay.PublishRelay;
 import rx.Observable;
-import rx.Scheduler;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+import timber.log.Timber;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ChainComposer extends Presenter<ChainComposer.View> {
     private final EffectorService effectorService;
-    private final Scheduler ioScheduler;
-    private final Scheduler uiScheduler;
+    private final RxScheduling rxScheduling;
     private final PublishRelay<Void> refreshRelay = PublishRelay.create();
     List<Filter> availableFilters;
     List<Filter> chain;
 
-    public ChainComposer(View view) {
-        this(view, new DummyEffectorService(), Schedulers.io(), AndroidSchedulers.mainThread());
+    @Inject
+    public ChainComposer(EffectorService effectorService, RxScheduling rxScheduling) {
+        this.effectorService = effectorService;
+        this.rxScheduling = rxScheduling;
+        Timber.d("Created");
     }
 
-    public ChainComposer(View view, EffectorService effectorService, Scheduler ioScheduler, Scheduler uiScheduler) {
-        super(view);
-        this.effectorService = effectorService;
-        this.ioScheduler = ioScheduler;
-        this.uiScheduler = uiScheduler;
+    public void attach(View view) {
+        super.attach(view);
         subscriptions.add(refreshRelay.flatMap(none ->
-                effectorService.listFilters()
-                        .subscribeOn(ioScheduler)
-                        .observeOn(uiScheduler)
+                rxScheduling.httpCall(effectorService.listFilters())
                         .doOnError(throwable -> {
                             view.showErrorMessage(throwable.getMessage());
                         })

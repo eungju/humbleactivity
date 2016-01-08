@@ -9,6 +9,7 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,11 +22,16 @@ public class ChainComposerActivity extends Activity implements ChainComposer.Vie
     ListView chainView;
     ArrayAdapter chainAdapter;
 
+    @Inject
     ChainComposer presenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        HumbleComponent component = HumbleApplication.get(this).component();
+        component.inject(this);
+
         setContentView(R.layout.activity_chain_composer);
         ButterKnife.bind(this);
 
@@ -35,13 +41,13 @@ public class ChainComposerActivity extends Activity implements ChainComposer.Vie
         chainAdapter = new ArrayAdapter(this, R.layout.view_filter_item);
         chainView.setAdapter(chainAdapter);
 
-        presenter = new ChainComposer(this);
+        presenter.attach(this);
         presenter.initialize();
     }
 
     @Override
     protected void onDestroy() {
-        presenter.destroy();
+        presenter.detach();
         super.onDestroy();
     }
 

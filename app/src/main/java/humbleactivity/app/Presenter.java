@@ -1,17 +1,21 @@
 package humbleactivity.app;
 
 import rx.subscriptions.CompositeSubscription;
+import timber.log.Timber;
 
 public abstract class Presenter<ViewType extends PassiveView> {
-    protected final ViewType view;
-    protected final CompositeSubscription subscriptions;
+    protected ViewType view;
+    protected CompositeSubscription subscriptions;
 
-    public Presenter(ViewType view) {
+    public void attach(ViewType view) {
+        Timber.d("Attaching %s", view.toString());
         this.view = view;
-        subscriptions = new CompositeSubscription();
+        this.subscriptions = new CompositeSubscription();
     }
 
-    public void destroy() {
+    public void detach() {
+        Timber.d("Detaching %s", view.toString());
         subscriptions.unsubscribe();
+        view = null;
     }
 }
