@@ -1,11 +1,13 @@
 package humbleactivity.app;
 
+import com.jakewharton.rxrelay.PublishRelay;
+import rx.Observable;
 import rx.Scheduler;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
+import rx.subscriptions.CompositeSubscription;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class ChainComposer {
@@ -13,6 +15,8 @@ public class ChainComposer {
     private final EffectorService effectorService;
     private final Scheduler ioScheduler;
     private final Scheduler uiScheduler;
+    private final CompositeSubscription subscriptions = new CompositeSubscription();
+    private final PublishRelay<Void> refreshRelay = PublishRelay.create();
     List<Filter> availableFilters;
     List<Filter> chain;
 
@@ -25,24 +29,28 @@ public class ChainComposer {
         this.effectorService = effectorService;
         this.ioScheduler = ioScheduler;
         this.uiScheduler = uiScheduler;
+        subscriptions.add(refreshRelay.flatMap(none ->
+                effectorService.listFilters()
+                        .subscribeOn(ioScheduler)
+                        .observeOn(uiScheduler)
+                        .doOnError(throwable -> {
+                            view.showErrorMessage(throwable.getMessage());
+                        })
+                        .onErrorResumeNext(Observable.empty())
+        ).subscribe(filters -> {
+            availableFilters = new ArrayList<>(filters);
+            chain = new ArrayList<>();
+            view.setAvailableFilters(availableFilters);
+            view.setChain(chain);
+        }));
     }
 
     public void initialize() {
-        refresh();
+        refreshRelay.call(null);
     }
 
     public void refresh() {
-        effectorService.listFilters()
-                .subscribeOn(ioScheduler)
-                .observeOn(uiScheduler)
-                .subscribe(filters -> {
-                    availableFilters = new ArrayList<>(filters);
-                    chain = new ArrayList<>();
-                    view.setAvailableFilters(filters);
-                    view.setChain(Collections.<Filter>emptyList());
-                }, throwable -> {
-                    view.showErrorMessage(throwable.getMessage());
-                });
+        refreshRelay.call(null);
     }
 
     public void addToChain(int selectedItemPosition) {
@@ -67,5 +75,9 @@ public class ChainComposer {
         to.add(selected);
         from.remove(index);
         return true;
+    }
+
+    public void destroy() {
+        subscriptions.unsubscribe();
     }
 }

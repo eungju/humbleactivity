@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 import butterknife.Bind;
@@ -39,6 +38,12 @@ public class ChainComposerActivity extends Activity implements ChainComposerView
 
         presenter = new ChainComposer(this);
         presenter.initialize();
+    }
+
+    @Override
+    protected void onDestroy() {
+        presenter.destroy();
+        super.onDestroy();
     }
 
     @OnClick(R.id.refresh)
