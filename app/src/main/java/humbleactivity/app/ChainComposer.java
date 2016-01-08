@@ -5,27 +5,24 @@ import rx.Observable;
 import rx.Scheduler;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
-import rx.subscriptions.CompositeSubscription;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChainComposer {
-    private final ChainComposerView view;
+public class ChainComposer extends Presenter<ChainComposer.View> {
     private final EffectorService effectorService;
     private final Scheduler ioScheduler;
     private final Scheduler uiScheduler;
-    private final CompositeSubscription subscriptions = new CompositeSubscription();
     private final PublishRelay<Void> refreshRelay = PublishRelay.create();
     List<Filter> availableFilters;
     List<Filter> chain;
 
-    public ChainComposer(ChainComposerView view) {
+    public ChainComposer(View view) {
         this(view, new DummyEffectorService(), Schedulers.io(), AndroidSchedulers.mainThread());
     }
 
-    public ChainComposer(ChainComposerView view, EffectorService effectorService, Scheduler ioScheduler, Scheduler uiScheduler) {
-        this.view = view;
+    public ChainComposer(View view, EffectorService effectorService, Scheduler ioScheduler, Scheduler uiScheduler) {
+        super(view);
         this.effectorService = effectorService;
         this.ioScheduler = ioScheduler;
         this.uiScheduler = uiScheduler;
@@ -43,10 +40,6 @@ public class ChainComposer {
             view.setAvailableFilters(availableFilters);
             view.setChain(chain);
         }));
-    }
-
-    public void destroy() {
-        subscriptions.unsubscribe();
     }
 
     public void initialize() {
@@ -79,5 +72,13 @@ public class ChainComposer {
         to.add(selected);
         from.remove(index);
         return true;
+    }
+
+    public interface View extends PassiveView {
+        void setAvailableFilters(List<Filter> filters);
+
+        void setChain(List<Filter> chain);
+
+        void showErrorMessage(String message);
     }
 }

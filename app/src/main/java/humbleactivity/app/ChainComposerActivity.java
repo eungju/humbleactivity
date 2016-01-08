@@ -2,7 +2,6 @@ package humbleactivity.app;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -13,7 +12,7 @@ import butterknife.OnClick;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChainComposerActivity extends Activity implements ChainComposerView {
+public class ChainComposerActivity extends Activity implements ChainComposer.View {
     @Bind(R.id.available_filters)
     ListView availableFiltersView;
     ArrayAdapter availableFiltersAdapter;
@@ -47,12 +46,12 @@ public class ChainComposerActivity extends Activity implements ChainComposerView
     }
 
     @OnClick(R.id.refresh)
-    public void onRefresh(View view) {
+    public void onRefresh(android.view.View view) {
         presenter.refresh();
     }
 
     @OnClick(R.id.add_to_chain)
-    public void onAddToChain(View view) {
+    public void onAddToChain(android.view.View view) {
         int position = availableFiltersView.getCheckedItemPosition();
         if (position != ListView.INVALID_POSITION) {
             presenter.addToChain(position);
@@ -60,7 +59,7 @@ public class ChainComposerActivity extends Activity implements ChainComposerView
     }
 
     @OnClick(R.id.remove_from_chain)
-    public void onRemoveFromChain(View view) {
+    public void onRemoveFromChain(android.view.View view) {
         int position = chainView.getCheckedItemPosition();
         if (position != ListView.INVALID_POSITION) {
             presenter.removeFromChain(position);
