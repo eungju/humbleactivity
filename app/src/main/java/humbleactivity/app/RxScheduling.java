@@ -12,7 +12,7 @@ public class RxScheduling {
         this.ui = ui;
     }
 
-    public <T> Observable<T> ioThenUi(Observable<T> observable) {
+    public <T> Observable<T> subscribeOnIoObserveOnUi(Observable<T> observable) {
         return observable.subscribeOn(io).observeOn(ui);
     }
 }

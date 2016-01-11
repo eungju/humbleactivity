@@ -28,7 +28,7 @@ public class ChainComposer extends Presenter<ChainComposer.ChainComposerView> {
     public void attach(ChainComposerView view) {
         super.attach(view);
         subscriptions.add(refreshRelay.flatMap(none ->
-                rxScheduling.ioThenUi(effectorService.listFilters())
+                rxScheduling.subscribeOnIoObserveOnUi(effectorService.listFilters())
                         .doOnError(throwable -> {
                             view.showErrorMessage(throwable.getMessage());
                         })
