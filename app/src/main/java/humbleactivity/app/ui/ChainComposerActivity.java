@@ -90,12 +90,12 @@ public class ChainComposerActivity extends Activity {
     }
 
     @OnClick(R.id.refresh)
-    void onRefresh(View view) {
+    void onRefresh() {
         presenter.refresh();
     }
 
     @OnClick(R.id.add_to_chain)
-    void onAddToChain(View view) {
+    void onAddToChain() {
         int position = availableFiltersView.getCheckedItemPosition();
         if (position != ListView.INVALID_POSITION) {
             presenter.addToChain(position);
@@ -103,7 +103,7 @@ public class ChainComposerActivity extends Activity {
     }
 
     @OnClick(R.id.remove_from_chain)
-    void onRemoveFromChain(View view) {
+    void onRemoveFromChain() {
         int position = chainView.getCheckedItemPosition();
         if (position != ListView.INVALID_POSITION) {
             presenter.removeFromChain(position);
@@ -111,7 +111,7 @@ public class ChainComposerActivity extends Activity {
     }
 
     @OnClick(R.id.move_up)
-    void onMoveUp(View view) {
+    void onMoveUp() {
         int position = chainView.getCheckedItemPosition();
         if (position != ListView.INVALID_POSITION) {
             presenter.moveUpFilter(position);
@@ -119,7 +119,7 @@ public class ChainComposerActivity extends Activity {
     }
 
     @OnClick(R.id.move_down)
-    void onMoveDown(View view) {
+    void onMoveDown() {
         int position = chainView.getCheckedItemPosition();
         if (position != ListView.INVALID_POSITION) {
             presenter.moveDownFilter(position);
