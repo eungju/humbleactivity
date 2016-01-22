@@ -46,7 +46,7 @@ public class ChainComposerActivity extends Activity {
         chainAdapter = new ArrayAdapter(this, R.layout.view_filter_item);
         chainView.setAdapter(chainAdapter);
 
-        presenter.attach(new ChainComposer.ChainComposerView() {
+        presenter.attach(new ChainComposer.View() {
             @Override
             public void setAvailableFilters(List<Filter> filters) {
                 List<String> items = new ArrayList<>(filters.size());

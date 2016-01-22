@@ -11,7 +11,7 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChainComposer extends Presenter<ChainComposer.ChainComposerView> {
+public class ChainComposer extends Presenter<ChainComposer.View> {
     private final EffectorService effectorService;
     private final RxScheduling rxScheduling;
     private final PublishRelay<Void> refreshRelay = PublishRelay.create();
@@ -25,7 +25,7 @@ public class ChainComposer extends Presenter<ChainComposer.ChainComposerView> {
         Timber.d("Created");
     }
 
-    public void attach(ChainComposerView view) {
+    public void attach(View view) {
         super.attach(view);
         subscriptions.add(refreshRelay.flatMap(none ->
                 rxScheduling.subscribeOnIoObserveOnUi(effectorService.listFilters())
@@ -91,7 +91,7 @@ public class ChainComposer extends Presenter<ChainComposer.ChainComposerView> {
         view.swapFilterInChain(index, index + 1);
     }
 
-    public interface ChainComposerView extends PassiveView {
+    public interface View extends PassiveView {
         void setAvailableFilters(List<Filter> filters);
 
         void setChain(List<Filter> chain);
