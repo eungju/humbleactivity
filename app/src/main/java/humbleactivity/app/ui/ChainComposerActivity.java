@@ -2,7 +2,6 @@ package humbleactivity.app.ui;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -20,10 +19,10 @@ import java.util.List;
 
 public class ChainComposerActivity extends Activity {
     @BindView(R.id.available_filters) ListView availableFiltersView;
-    ArrayAdapter availableFiltersAdapter;
+    ArrayAdapter<String> availableFiltersAdapter;
 
     @BindView(R.id.chain) ListView chainView;
-    ArrayAdapter chainAdapter;
+    ArrayAdapter<String> chainAdapter;
 
     @Inject
     ChainComposer presenter;
@@ -38,10 +37,10 @@ public class ChainComposerActivity extends Activity {
         setContentView(R.layout.activity_chain_composer);
         ButterKnife.bind(this);
 
-        availableFiltersAdapter = new ArrayAdapter(this, R.layout.view_filter_item);
+        availableFiltersAdapter = new ArrayAdapter<>(this, R.layout.view_filter_item);
         availableFiltersView.setAdapter(availableFiltersAdapter);
 
-        chainAdapter = new ArrayAdapter(this, R.layout.view_filter_item);
+        chainAdapter = new ArrayAdapter<>(this, R.layout.view_filter_item);
         chainView.setAdapter(chainAdapter);
 
         presenter.attach(new ChainComposer.View() {
@@ -72,7 +71,7 @@ public class ChainComposerActivity extends Activity {
 
             @Override
             public void swapFilterInChain(int from, int to) {
-                Object picked = chainAdapter.getItem(from);
+                String picked = chainAdapter.getItem(from);
                 chainAdapter.remove(picked);
                 chainAdapter.insert(picked, to);
                 chainView.setItemChecked(to, true);
