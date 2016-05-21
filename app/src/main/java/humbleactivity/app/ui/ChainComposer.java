@@ -30,7 +30,7 @@ public class ChainComposer extends Presenter<ChainComposer.View> {
         subscriptions.add(refreshRelay.flatMap(none ->
                 rxScheduling.subscribeOnIoObserveOnUi(effectorService.listFilters())
                         .doOnError(throwable -> {
-                            view.showErrorMessage(throwable.getMessage());
+                            view.showError(throwable.getMessage());
                         })
                         .onErrorResumeNext(Observable.empty())
         ).subscribe(filters -> {
@@ -96,7 +96,7 @@ public class ChainComposer extends Presenter<ChainComposer.View> {
 
         void setChain(List<Filter> chain);
 
-        void showErrorMessage(String message);
+        void showError(String message);
 
         void swapFilterInChain(int from, int to);
     }

@@ -55,7 +55,7 @@ public class ChainComposerTest {
         final States states = mockery.states("listFilters");
         mockery.checking(new Expectations() {{
             oneOf(effectorService).listFilters(); will(returnValue(Observable.error(new IOException(errorMessage))));
-            oneOf(view).showErrorMessage(errorMessage);
+            oneOf(view).showError(errorMessage);
             then(states.is("called"));
         }});
         dut.initialize();

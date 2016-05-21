@@ -65,8 +65,8 @@ public class ChainComposerActivity extends Activity {
             }
 
             @Override
-            public void showErrorMessage(String message) {
-                Toast.makeText(ChainComposerActivity.this, message, Toast.LENGTH_LONG);
+            public void showError(String message) {
+                Toast.makeText(ChainComposerActivity.this, message, Toast.LENGTH_LONG).show();
             }
 
             @Override
