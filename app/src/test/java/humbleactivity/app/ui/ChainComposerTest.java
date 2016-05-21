@@ -25,7 +25,7 @@ public class ChainComposerTest {
     public JUnitRuleMockery mockery = new JUnitRuleMockery() {{
         setThreadingPolicy(synchroniser);
     }};
-    ChainComposer.ChainComposerView view = mockery.mock(ChainComposer.ChainComposerView.class);
+    ChainComposer.View view = mockery.mock(ChainComposer.View.class);
     EffectorService effectorService = mockery.mock(EffectorService.class);
     ChainComposer dut = new ChainComposer(effectorService, new RxScheduling(Schedulers.io(), Schedulers.immediate()));
 
