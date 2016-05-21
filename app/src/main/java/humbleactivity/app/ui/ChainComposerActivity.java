@@ -6,7 +6,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import humbleactivity.app.HumbleApplication;
@@ -19,12 +19,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ChainComposerActivity extends Activity {
-    @Bind(R.id.available_filters)
-    ListView availableFiltersView;
+    @BindView(R.id.available_filters) ListView availableFiltersView;
     ArrayAdapter availableFiltersAdapter;
 
-    @Bind(R.id.chain)
-    ListView chainView;
+    @BindView(R.id.chain) ListView chainView;
     ArrayAdapter chainAdapter;
 
     @Inject
