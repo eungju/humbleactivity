@@ -9,7 +9,6 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import humbleactivity.app.HumbleApplication;
-import humbleactivity.app.HumbleComponent;
 import humbleactivity.app.R;
 import humbleactivity.app.data.Filter;
 
@@ -24,15 +23,13 @@ public class ChainComposerActivity extends Activity {
     @BindView(R.id.chain) ListView chainView;
     ArrayAdapter<String> chainAdapter;
 
-    @Inject
-    ChainComposer presenter;
+    @Inject ChainComposer presenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        HumbleComponent component = HumbleApplication.get(this).component();
-        component.inject(this);
+        HumbleApplication.get(this).component().inject(this);
 
         setContentView(R.layout.activity_chain_composer);
         ButterKnife.bind(this);
