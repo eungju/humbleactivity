@@ -1,7 +1,5 @@
 package humbleactivity.app.data;
 
-import java.util.Objects;
-
 public class Filter {
     public final String name;
 
@@ -13,12 +11,15 @@ public class Filter {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+
         Filter filter = (Filter) o;
-        return Objects.equals(name, filter.name);
+
+        return name.equals(filter.name);
+
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name);
+        return name.hashCode();
     }
 }
