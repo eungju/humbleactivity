@@ -28,8 +28,8 @@ constructor(private val effectorService: EffectorService,
     lateinit var availableFilters: List<Filter>
     lateinit var chain: List<Filter>
 
-    override fun attach(view: View) {
-        super.attach(view)
+    override fun attach(_view: View) {
+        super.attach(_view)
         subscriptions.add(refreshRelay
                 .flatMap {
                     rxScheduling.subscribeOnIoObserveOnUi(effectorService.listFilters())
@@ -39,8 +39,8 @@ constructor(private val effectorService: EffectorService,
                 .subscribe { filters ->
                     availableFilters = filters
                     chain = emptyList()
-                    view.setAvailableFilters(availableFilters)
-                    view.setChain(chain)
+                    view!!.setAvailableFilters(availableFilters)
+                    view!!.setChain(chain)
                 })
     }
 
@@ -62,7 +62,7 @@ constructor(private val effectorService: EffectorService,
         }
         val picked = availableFilters[selectedItemPosition]
         availableFilters = availableFilters.removeAt(selectedItemPosition)
-        chain = chain + picked
+        chain += picked
         view!!.setAvailableFilters(availableFilters)
         view!!.setChain(chain)
     }
@@ -73,7 +73,7 @@ constructor(private val effectorService: EffectorService,
         }
         val picked = chain[selectedItemPosition]
         chain = chain.removeAt(selectedItemPosition)
-        availableFilters = availableFilters + picked
+        availableFilters += picked
         view!!.setAvailableFilters(availableFilters)
         view!!.setChain(chain)
     }
