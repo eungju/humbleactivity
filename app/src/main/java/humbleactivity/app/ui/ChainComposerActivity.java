@@ -48,7 +48,7 @@ public class ChainComposerActivity extends Activity {
             public void setAvailableFilters(List<Filter> filters) {
                 List<String> items = new ArrayList<>(filters.size());
                 for (Filter each : filters) {
-                    items.add(each.name);
+                    items.add(each.getName());
                 }
                 availableFiltersAdapter.clear();
                 availableFiltersAdapter.addAll(items);
@@ -58,7 +58,7 @@ public class ChainComposerActivity extends Activity {
             public void setChain(List<Filter> chain) {
                 List<String> items = new ArrayList<>(chain.size());
                 for (Filter each : chain) {
-                    items.add(each.name);
+                    items.add(each.getName());
                 }
                 chainAdapter.clear();
                 chainAdapter.addAll(items);
