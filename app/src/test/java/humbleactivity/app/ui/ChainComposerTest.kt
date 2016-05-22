@@ -11,6 +11,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import rx.Observable
+import rx.observers.TestSubscriber
 import rx.schedulers.Schedulers
 import java.io.IOException
 
@@ -21,84 +22,78 @@ class ChainComposerTest {
             setThreadingPolicy(synchroniser)
         }
     }
-    @Mock lateinit var view: ChainComposer.View
     @Mock lateinit var effectorService: EffectorService
     lateinit var dut: ChainComposer
+    val availablesSubscriber = TestSubscriber.create<List<Filter>>()
+    val chainSubscriber = TestSubscriber.create<List<Filter>>()
+    val chainCursorMoveSubscriber = TestSubscriber.create<Int>()
+    val loadErrorSubscriber = TestSubscriber.create<String>()
 
     @Before
     fun setUp() {
-        dut = ChainComposer(effectorService, RxScheduling(Schedulers.io(), Schedulers.immediate()))
-        dut.attach(view)
+        dut = ChainComposer(effectorService, RxScheduling(Schedulers.trampoline(), Schedulers.immediate()))
+        dut.availables().subscribe(availablesSubscriber)
+        dut.chain().subscribe(chainSubscriber)
+        dut.chainCursorMove().subscribe(chainCursorMoveSubscriber)
+        dut.loadError().subscribe(loadErrorSubscriber)
     }
 
     @Test
-    @Throws(InterruptedException::class)
     fun initialization() {
         val filters = listOf(Filter("Reverb"))
         val chain = emptyList<Filter>()
         val states = mockery.states("listFilters")
         mockery.checking(object : Expectations() {
             init {
-                oneOf(view).setAvailableFilters(emptyList<Filter>())
-                oneOf(view).setChain(emptyList<Filter>())
                 oneOf(effectorService).listFilters(); will(returnValue(Observable.just(filters)))
-                oneOf(view).setAvailableFilters(filters)
-                oneOf(view).setChain(chain)
                 then(states.`is`("called"))
             }
         })
         dut.initialize()
         synchroniser.waitUntil(states.`is`("called"))
+        availablesSubscriber.assertValues(emptyList(), filters)
+        chainSubscriber.assertValues(emptyList(), chain)
     }
 
     @Test
-    @Throws(InterruptedException::class)
-    fun initializationFailure() {
+    fun initializationError() {
         val errorMessage = "error"
         val states = mockery.states("listFilters")
         mockery.checking(object : Expectations() {
             init {
-                oneOf(view).setAvailableFilters(emptyList<Filter>())
-                oneOf(view).setChain(emptyList<Filter>())
                 oneOf(effectorService).listFilters(); will(returnValue(Observable.error<Any>(IOException(errorMessage))))
-                oneOf(view).showError(errorMessage)
                 then(states.`is`("called"))
             }
         })
         dut.initialize()
         synchroniser.waitUntil(states.`is`("called"))
+        availablesSubscriber.assertValues(emptyList())
+        chainSubscriber.assertValues(emptyList())
+        loadErrorSubscriber.assertValue(errorMessage)
     }
 
     @Test
     fun addToChain() {
         val filters = listOf(Filter("Reverb"), Filter("Distortion"))
-        mockery.checking(object : Expectations() {
-            init {
-                oneOf(view).setAvailableFilters(filters.subList(1, filters.size))
-                oneOf(view).setChain(filters.subList(0, 1))
-            }
-        })
-        dut.availableFilters = filters
-        dut.chain = emptyList()
-        dut.addToChain(0)
+        dut.availables.call(filters)
+        dut.chain.call(emptyList())
+        dut.onAddToChain().call(0)
+        availablesSubscriber.assertValues(filters, filters.subList(1, filters.size))
+        chainSubscriber.assertValues(emptyList(), filters.subList(0, 1))
     }
 
     @Test
     fun removeFromChain() {
-        val filters = listOf(Filter("Reverb"), Filter("Distortion"))
-        mockery.checking(object : Expectations() {
-            init {
-                oneOf(view).setAvailableFilters(filters)
-                oneOf(view).setChain(filters.subList(0, 0))
-            }
-        })
-        dut.availableFilters = filters.subList(0, 1)
-        dut.chain = filters.subList(1, filters.size)
-        dut.removeFromChain(0)
+        val availables = listOf(Filter("Reverb"))
+        val chain = listOf(Filter("Distortion"))
+        dut.availables.call(availables)
+        dut.chain.call(chain)
+        dut.onRemoveFromChain().call(0)
+        availablesSubscriber.assertValues(availables, availables + chain)
+        chainSubscriber.assertValues(chain, emptyList())
     }
 
     @Test
-    @Throws(InterruptedException::class)
     fun refresh() {
         val filters = listOf(Filter("Reverb"))
         val chain = emptyList<Filter>()
@@ -106,36 +101,30 @@ class ChainComposerTest {
         mockery.checking(object : Expectations() {
             init {
                 oneOf(effectorService).listFilters(); will(returnValue(Observable.just(filters)))
-                oneOf(view).setAvailableFilters(filters)
-                oneOf(view).setChain(chain)
                 then(states.`is`("called"))
             }
         })
-        dut.refresh()
+        dut.onRefresh().call(Unit)
         synchroniser.waitUntil(states.`is`("called"), 1000)
+        availablesSubscriber.assertValues(filters)
+        chainSubscriber.assertValues(chain)
     }
 
     @Test
     fun moveUpFilter() {
-        val filters = listOf(Filter("Reverb"), Filter("Distortion"))
-        mockery.checking(object : Expectations() {
-            init {
-                oneOf(view).swapFilterInChain(1, 0)
-            }
-        })
-        dut.chain = filters
-        dut.moveUpFilter(1)
+        val chain = listOf(Filter("Reverb"), Filter("Distortion"))
+        dut.chain.call(chain)
+        dut.onMoveUp().call(1)
+        chainSubscriber.assertValues(chain, chain.subList(1, chain.size) + chain[0])
+        chainCursorMoveSubscriber.assertValues(0)
     }
 
     @Test
     fun moveDownFilter() {
-        val filters = listOf(Filter("Reverb"), Filter("Distortion"))
-        mockery.checking(object : Expectations() {
-            init {
-                oneOf(view).swapFilterInChain(0, 1)
-            }
-        })
-        dut.chain = filters
-        dut.moveDownFilter(0)
+        val chain = listOf(Filter("Reverb"), Filter("Distortion"))
+        dut.chain.call(chain)
+        dut.onMoveDown().call(0)
+        chainSubscriber.assertValues(chain, chain.subList(1, chain.size) + chain[0])
+        chainCursorMoveSubscriber.assertValues(1)
     }
 }

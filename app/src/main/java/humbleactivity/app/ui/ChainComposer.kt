@@ -1,5 +1,6 @@
 package humbleactivity.app.ui
 
+import com.jakewharton.rxrelay.BehaviorRelay
 import com.jakewharton.rxrelay.PublishRelay
 import humbleactivity.app.RxScheduling
 import humbleactivity.app.data.EffectorService
@@ -7,90 +8,72 @@ import humbleactivity.app.data.Filter
 import humbleactivity.app.data.removeAt
 import humbleactivity.app.data.swap
 import rx.Observable
+import rx.functions.Action1
 
 import javax.inject.Inject
 
 class ChainComposer
 @Inject
-constructor(private val effectorService: EffectorService,
-            private val rxScheduling: RxScheduling) : Presenter<ChainComposer.View>() {
-    interface View : PassiveView {
-        fun setAvailableFilters(filters: List<Filter>)
+constructor(effectorService: EffectorService,
+            rxScheduling: RxScheduling) {
+    val availables = BehaviorRelay.create<List<Filter>>()
+    val chain = BehaviorRelay.create<List<Filter>>()
+    private val refresh = PublishRelay.create<Unit>()
+    private val addToChain = PublishRelay.create<Int>()
+    private val removeFromChain = PublishRelay.create<Int>()
+    private val moveUp = PublishRelay.create<Int>()
+    private val moveDown = PublishRelay.create<Int>()
+    private val loadError = PublishRelay.create<String>()
+    private val loadAvailables = refresh
+            .concatMap {
+                rxScheduling.subscribeOnIoObserveOnUi(effectorService.listFilters())
+                        .doOnError { throwable -> loadError.call(throwable.message!!) }
+                        .onErrorResumeNext(Observable.empty())
+            }
+    private val chainCursorMove = PublishRelay.create<Int>()
+    private val crossUpdate = loadAvailables.map { a -> Pair(a, emptyList<Filter>()) }
+            .mergeWith(addToChain.withLatestFrom(Observable.combineLatest(availables, chain, { a, b -> Pair(a, b) }), { position, a_b ->
+                val (from, to) = a_b
+                Pair(from.removeAt(position), to + from[position])
+            }))
+            .mergeWith(removeFromChain.withLatestFrom(Observable.combineLatest(availables, chain, { a, b -> Pair(a, b) }), { position, a_b ->
+                val (to, from) = a_b
+                Pair(to + from[position], from.removeAt(position))
+            }))
+            .subscribe { a_b -> availables.call(a_b.first); chain.call(a_b.second) }
+    private val chainUpdate = moveDown.withLatestFrom(chain, { position, b -> Pair(b.swap(position, position + 1), position + 1) })
+            .mergeWith(moveUp.withLatestFrom(chain, { position, b -> Pair(b.swap(position, position - 1), position - 1) }))
+            .subscribe { b ->
+                chain.call(b.first)
+                chainCursorMove.call(b.second)
+            }
 
-        fun setChain(chain: List<Filter>)
+    fun availables(): Observable<List<Filter>> = availables
 
-        fun showError(message: String)
+    fun chain(): Observable<List<Filter>> = chain
 
-        fun swapFilterInChain(from: Int, to: Int)
-    }
+    fun chainCursorMove(): Observable<Int> = chainCursorMove
 
-    private val refreshRelay = PublishRelay.create<Unit>()
-    lateinit var availableFilters: List<Filter>
-    lateinit var chain: List<Filter>
+    fun loadError(): Observable<String> = loadError
 
-    override fun attach(_view: View) {
-        super.attach(_view)
-        subscriptions.add(refreshRelay
-                .flatMap {
-                    rxScheduling.subscribeOnIoObserveOnUi(effectorService.listFilters())
-                            .doOnError { throwable -> view!!.showError(throwable.message!!) }
-                            .onErrorResumeNext(Observable.empty())
-                }
-                .subscribe { filters ->
-                    availableFilters = filters
-                    chain = emptyList()
-                    view!!.setAvailableFilters(availableFilters)
-                    view!!.setChain(chain)
-                })
-    }
+    fun onRefresh(): Action1<Unit> = refresh
+
+    fun onAddToChain(): Action1<Int> = addToChain
+
+    fun onRemoveFromChain(): Action1<Int> = removeFromChain
+
+    fun onMoveUp(): Action1<Int> = moveUp
+
+    fun onMoveDown(): Action1<Int> = moveDown
 
     fun initialize() {
-        availableFilters = emptyList()
-        chain = emptyList()
-        view!!.setAvailableFilters(availableFilters)
-        view!!.setChain(chain)
-        refresh()
+        availables.call(emptyList())
+        chain.call(emptyList())
+        refresh.call(Unit)
     }
 
-    fun refresh() {
-        refreshRelay.call(Unit)
-    }
-
-    fun addToChain(selectedItemPosition: Int) {
-        if (selectedItemPosition < 0 || selectedItemPosition >= availableFilters.size) {
-            return
-        }
-        val picked = availableFilters[selectedItemPosition]
-        availableFilters = availableFilters.removeAt(selectedItemPosition)
-        chain += picked
-        view!!.setAvailableFilters(availableFilters)
-        view!!.setChain(chain)
-    }
-
-    fun removeFromChain(selectedItemPosition: Int) {
-        if (selectedItemPosition < 0 || selectedItemPosition >= chain.size) {
-            return
-        }
-        val picked = chain[selectedItemPosition]
-        chain = chain.removeAt(selectedItemPosition)
-        availableFilters += picked
-        view!!.setAvailableFilters(availableFilters)
-        view!!.setChain(chain)
-    }
-
-    fun moveUpFilter(index: Int) {
-        if (index < 1 || index >= chain.size) {
-            return
-        }
-        chain = chain.swap(index, index - 1)
-        view!!.swapFilterInChain(index, index - 1)
-    }
-
-    fun moveDownFilter(index: Int) {
-        if (index < 0 || index >= chain.size - 1) {
-            return
-        }
-        chain = chain.swap(index, index + 1)
-        view!!.swapFilterInChain(index, index + 1)
+    fun dispose() {
+        crossUpdate.unsubscribe()
+        chainUpdate.unsubscribe()
     }
 }
