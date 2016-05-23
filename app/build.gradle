@@ -6,13 +6,11 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:2.1.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'me.tatarka:gradle-retrolambda:3.2.5'
         classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
     }
 }
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'me.tatarka.retrolambda'
 apply plugin: 'com.neenbedankt.android-apt'
 
 repositories {
@@ -29,11 +27,6 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     lintOptions {
