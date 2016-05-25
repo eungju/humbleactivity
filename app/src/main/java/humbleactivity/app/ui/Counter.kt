@@ -9,11 +9,12 @@ class Counter {
     private val current = BehaviorRelay.create<Int>()
     private val up = PublishRelay.create<Unit>()
     private val down = PublishRelay.create<Unit>()
-    private val currentUpdate = up.withLatestFrom(current, { a, b -> b + 1 })
+    private val currentUpdate = current.mergeWith(up.withLatestFrom(current, { a, b -> b + 1 })
             .mergeWith(down.withLatestFrom(current, { a, b -> b - 1 }))
-            .subscribe(current)
+            .doOnNext { current.call(it) }
+            .ignoreElements())
 
-    fun current(): Observable<Int> = current
+    fun current(): Observable<Int> = currentUpdate
 
     fun onUp(): Action1<Unit> = up
 
@@ -21,9 +22,5 @@ class Counter {
 
     fun initialize(initial: Int) {
         current.call(initial)
-    }
-
-    fun dispose() {
-        currentUpdate.unsubscribe()
     }
 }
