@@ -9,6 +9,7 @@ import humbleactivity.app.data.removeAt
 import humbleactivity.app.data.swap
 import rx.Observable
 import rx.functions.Action1
+import timber.log.Timber
 
 import javax.inject.Inject
 
@@ -16,8 +17,9 @@ class ChainComposer
 @Inject
 constructor(effectorService: EffectorService,
             rxScheduling: RxScheduling) {
-    val availables = BehaviorRelay.create<List<Filter>>()
-    val chain = BehaviorRelay.create<List<Filter>>()
+    data class State(val availables: List<Filter>, val chain: List<Filter>)
+    val state = BehaviorRelay.create<State>()
+    private val chainCursor = PublishRelay.create<Int>()
     private val refresh = PublishRelay.create<Unit>()
     private val addToChain = PublishRelay.create<Int>()
     private val removeFromChain = PublishRelay.create<Int>()
@@ -30,29 +32,29 @@ constructor(effectorService: EffectorService,
                         .doOnError { throwable -> loadError.call(throwable.message!!) }
                         .onErrorResumeNext(Observable.empty())
             }
-    private val chainCursorMove = PublishRelay.create<Int>()
-    private val crossUpdate = loadAvailables.map { a -> Pair(a, emptyList<Filter>()) }
-            .mergeWith(addToChain.withLatestFrom(Observable.combineLatest(availables, chain, { a, b -> Pair(a, b) }), { position, a_b ->
-                val (from, to) = a_b
-                Pair(from.removeAt(position), to + from[position])
-            }))
-            .mergeWith(removeFromChain.withLatestFrom(Observable.combineLatest(availables, chain, { a, b -> Pair(a, b) }), { position, a_b ->
-                val (to, from) = a_b
-                Pair(to + from[position], from.removeAt(position))
-            }))
-            .subscribe { a_b -> availables.call(a_b.first); chain.call(a_b.second) }
-    private val chainUpdate = moveDown.withLatestFrom(chain, { position, b -> Pair(b.swap(position, position + 1), position + 1) })
-            .mergeWith(moveUp.withLatestFrom(chain, { position, b -> Pair(b.swap(position, position - 1), position - 1) }))
-            .subscribe { b ->
-                chain.call(b.first)
-                chainCursorMove.call(b.second)
-            }
+    private val stateUpdate = state
+            .mergeWith(loadAvailables.map { availables -> State(availables, emptyList()) }
+                    .mergeWith(addToChain.withLatestFrom(state, { position, state ->
+                        State(state.availables.removeAt(position), state.chain + state.availables[position])
+                    }))
+                    .mergeWith(removeFromChain.withLatestFrom(state, { position, state ->
+                        State(state.availables + state.chain[position], state.chain.removeAt(position))
+                    }))
+                    .mergeWith(moveDown.withLatestFrom(state, { position, state ->
+                        chainCursor.call(position + 1)
+                        State(state.availables, state.chain.swap(position, position + 1)) }))
+                    .mergeWith(moveUp.withLatestFrom(state, { position, state ->
+                        chainCursor.call(position - 1)
+                        State(state.availables, state.chain.swap(position, position - 1)) }))
+                    .doOnNext(state)
+                    .ignoreElements())
+            .share()
 
-    fun availables(): Observable<List<Filter>> = availables
+    fun availables(): Observable<List<Filter>> = stateUpdate.map { it.availables }
 
-    fun chain(): Observable<List<Filter>> = chain
+    fun chain(): Observable<List<Filter>> = stateUpdate.map { it.chain }
 
-    fun chainCursorMove(): Observable<Int> = chainCursorMove
+    fun chainCursorMove(): Observable<Int> = chainCursor
 
     fun loadError(): Observable<String> = loadError
 
@@ -67,13 +69,7 @@ constructor(effectorService: EffectorService,
     fun onMoveDown(): Action1<Int> = moveDown
 
     fun initialize() {
-        availables.call(emptyList())
-        chain.call(emptyList())
+        state.call(State(emptyList(), emptyList()))
         refresh.call(Unit)
-    }
-
-    fun dispose() {
-        crossUpdate.unsubscribe()
-        chainUpdate.unsubscribe()
     }
 }

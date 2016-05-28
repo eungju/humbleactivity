@@ -60,7 +60,6 @@ class ChainComposerActivity : Activity() {
     }
 
     override fun onDestroy() {
-        presenter.dispose()
         subscriptions.unsubscribe()
         super.onDestroy()
     }
