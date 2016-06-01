@@ -34,7 +34,7 @@ class ChainComposerTest {
         dut = ChainComposer(effectorService, RxScheduling(Schedulers.trampoline(), Schedulers.immediate()))
         dut.availables().subscribe(availablesSubscriber)
         dut.chain().subscribe(chainSubscriber)
-        dut.chainCursorMove().subscribe(chainCursorMoveSubscriber)
+        dut.chainCursor().subscribe(chainCursorMoveSubscriber)
         dut.loadError().subscribe(loadErrorSubscriber)
     }
 
@@ -42,15 +42,15 @@ class ChainComposerTest {
     fun initialization() {
         val filters = listOf(Filter("Reverb"))
         val chain = emptyList<Filter>()
-        val states = mockery.states("listFilters")
+        val states = mockery.states("load")
         mockery.checking(object : Expectations() {
             init {
                 oneOf(effectorService).listFilters(); will(returnValue(Observable.just(filters)))
-                then(states.`is`("called"))
+                then(states.`is`("completed"))
             }
         })
         dut.initialize()
-        synchroniser.waitUntil(states.`is`("called"))
+        synchroniser.waitUntil(states.`is`("completed"))
         availablesSubscriber.assertValues(emptyList(), filters)
         chainSubscriber.assertValues(emptyList(), chain)
     }
@@ -58,15 +58,15 @@ class ChainComposerTest {
     @Test
     fun initializationError() {
         val errorMessage = "error"
-        val states = mockery.states("listFilters")
+        val states = mockery.states("load")
         mockery.checking(object : Expectations() {
             init {
                 oneOf(effectorService).listFilters(); will(returnValue(Observable.error<Any>(IOException(errorMessage))))
-                then(states.`is`("called"))
+                then(states.`is`("completed"))
             }
         })
         dut.initialize()
-        synchroniser.waitUntil(states.`is`("called"))
+        synchroniser.waitUntil(states.`is`("completed"))
         availablesSubscriber.assertValues(emptyList())
         chainSubscriber.assertValues(emptyList())
         loadErrorSubscriber.assertValue(errorMessage)
@@ -95,15 +95,15 @@ class ChainComposerTest {
     fun refresh() {
         val filters = listOf(Filter("Reverb"))
         val chain = emptyList<Filter>()
-        val states = mockery.states("listFilters")
+        val states = mockery.states("load")
         mockery.checking(object : Expectations() {
             init {
                 oneOf(effectorService).listFilters(); will(returnValue(Observable.just(filters)))
-                then(states.`is`("called"))
+                then(states.`is`("completed"))
             }
         })
         dut.onRefresh().call(Unit)
-        synchroniser.waitUntil(states.`is`("called"), 1000)
+        synchroniser.waitUntil(states.`is`("completed"), 1000)
         availablesSubscriber.assertValues(filters)
         chainSubscriber.assertValues(chain)
     }

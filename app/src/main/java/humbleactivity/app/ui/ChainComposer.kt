@@ -9,7 +9,6 @@ import humbleactivity.app.data.removeAt
 import humbleactivity.app.data.swap
 import rx.Observable
 import rx.functions.Action1
-import timber.log.Timber
 
 import javax.inject.Inject
 
@@ -18,7 +17,8 @@ class ChainComposer
 constructor(effectorService: EffectorService,
             rxScheduling: RxScheduling) {
     data class State(val availables: List<Filter>, val chain: List<Filter>)
-    val state = BehaviorRelay.create<State>()
+
+    internal val state = BehaviorRelay.create<State>()
     private val chainCursor = PublishRelay.create<Int>()
     private val refresh = PublishRelay.create<Unit>()
     private val addToChain = PublishRelay.create<Int>()
@@ -28,7 +28,8 @@ constructor(effectorService: EffectorService,
     private val loadError = PublishRelay.create<String>()
     private val loadAvailables = refresh
             .concatMap {
-                rxScheduling.subscribeOnIoObserveOnUi(effectorService.listFilters())
+                effectorService.listFilters()
+                        .observeOn(rxScheduling.ui)
                         .doOnError { throwable -> loadError.call(throwable.message!!) }
                         .onErrorResumeNext(Observable.empty())
             }
@@ -54,7 +55,7 @@ constructor(effectorService: EffectorService,
 
     fun chain(): Observable<List<Filter>> = stateUpdate.map { it.chain }
 
-    fun chainCursorMove(): Observable<Int> = chainCursor
+    fun chainCursor(): Observable<Int> = chainCursor
 
     fun loadError(): Observable<String> = loadError
 

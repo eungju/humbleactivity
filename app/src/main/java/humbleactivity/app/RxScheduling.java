@@ -1,6 +1,5 @@
 package humbleactivity.app;
 
-import rx.Observable;
 import rx.Scheduler;
 
 public class RxScheduling {
@@ -10,9 +9,5 @@ public class RxScheduling {
     public RxScheduling(Scheduler io, Scheduler ui) {
         this.io = io;
         this.ui = ui;
-    }
-
-    public <T> Observable<T> subscribeOnIoObserveOnUi(Observable<T> observable) {
-        return observable.subscribeOn(io).observeOn(ui);
     }
 }

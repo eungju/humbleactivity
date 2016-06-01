@@ -23,7 +23,6 @@ class ChainComposerActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         HumbleApplication.get(this).component().inject(this)
-
         subscriptions = CompositeSubscription()
 
         setContentView(R.layout.activity_chain_composer)
@@ -39,6 +38,7 @@ class ChainComposerActivity : Activity() {
         val moveDownView = ButterKnife.findById<View>(this, R.id.move_down)
         val moveUpView = ButterKnife.findById<View>(this, R.id.move_up)
 
+        //Output signals
         subscriptions.add(presenter.availables().subscribe { filters ->
             availablesAdapter.clear()
             availablesAdapter.addAll(filters.map { it.name })
@@ -47,14 +47,27 @@ class ChainComposerActivity : Activity() {
             chainAdapter.clear()
             chainAdapter.addAll(filters.map { it.name })
         })
-        subscriptions.add(presenter.chainCursorMove().subscribe { position -> chainView.setItemChecked(position, true) })
-        subscriptions.add(presenter.loadError().subscribe { message -> Toast.makeText(this, message, Toast.LENGTH_LONG).show() })
-
-        subscriptions.add(RxView.clicks(refreshView).map { Unit }.subscribe(presenter.onRefresh()))
-        subscriptions.add(RxView.clicks(addToChainView).map { availablesView.checkedItemPosition }.filter { p -> p >= 0 && p < availablesView.count }.subscribe(presenter.onAddToChain()))
-        subscriptions.add(RxView.clicks(removeFromChainView).map { chainView.checkedItemPosition }.filter { p -> p >= 0 && p < chainView.count }.subscribe(presenter.onRemoveFromChain()))
-        subscriptions.add(RxView.clicks(moveUpView).map { chainView.checkedItemPosition }.filter { p -> p >= 1 && p < chainView.count }.subscribe(presenter.onMoveUp()))
-        subscriptions.add(RxView.clicks(moveDownView).map { ignore -> chainView.checkedItemPosition }.filter { p -> p >= 0 && p < chainView.count - 1 }.subscribe(presenter.onMoveDown()))
+        subscriptions.add(presenter.chainCursor().subscribe { position ->
+            chainView.setItemChecked(position, true)
+        })
+        subscriptions.add(presenter.loadError().subscribe { message ->
+            Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+        })
+        //Input signals
+        subscriptions.add(RxView.clicks(refreshView).map { Unit }
+                .subscribe(presenter.onRefresh()))
+        subscriptions.add(RxView.clicks(addToChainView).map { availablesView.checkedItemPosition }
+                .filter { p -> p >= 0 && p < availablesView.count }
+                .subscribe(presenter.onAddToChain()))
+        subscriptions.add(RxView.clicks(removeFromChainView).map { chainView.checkedItemPosition }
+                .filter { p -> p >= 0 && p < chainView.count }
+                .subscribe(presenter.onRemoveFromChain()))
+        subscriptions.add(RxView.clicks(moveUpView).map { chainView.checkedItemPosition }
+                .filter { p -> p >= 1 && p < chainView.count }
+                .subscribe(presenter.onMoveUp()))
+        subscriptions.add(RxView.clicks(moveDownView).map { ignore -> chainView.checkedItemPosition }
+                .filter { p -> p >= 0 && p < chainView.count - 1 }
+                .subscribe(presenter.onMoveDown()))
 
         presenter.initialize()
     }
