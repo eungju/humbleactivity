@@ -16,7 +16,23 @@ class ChainComposer
 @Inject
 constructor(effectorService: EffectorService,
             rxScheduling: RxScheduling) {
-    data class State(val availables: List<Filter>, val chain: List<Filter>)
+    data class State(val availables: List<Filter>, val chain: List<Filter>) {
+        fun addToChain(position: Int): State {
+            return copy(availables.removeAt(position), chain + availables[position])
+        }
+
+        fun removeFromChain(position: Int): State {
+            return copy(availables + chain[position], chain.removeAt(position))
+        }
+
+        fun moveDown(position: Int): State {
+            return copy(chain = chain.swap(position, position + 1))
+        }
+
+        fun moveUp(position: Int): State {
+            return copy(chain = chain.swap(position, position - 1))
+        }
+    }
 
     internal val state = BehaviorRelay.create<State>()
     private val chainCursor = PublishRelay.create<Int>()
@@ -35,18 +51,16 @@ constructor(effectorService: EffectorService,
             }
     private val stateUpdate = state
             .mergeWith(loadAvailables.map { availables -> State(availables, emptyList()) }
-                    .mergeWith(addToChain.withLatestFrom(state, { position, state ->
-                        State(state.availables.removeAt(position), state.chain + state.availables[position])
-                    }))
-                    .mergeWith(removeFromChain.withLatestFrom(state, { position, state ->
-                        State(state.availables + state.chain[position], state.chain.removeAt(position))
-                    }))
+                    .mergeWith(addToChain.withLatestFrom(state, { position, state -> state.addToChain(position) }))
+                    .mergeWith(removeFromChain.withLatestFrom(state, { position, state -> state.removeFromChain(position) }))
                     .mergeWith(moveDown.withLatestFrom(state, { position, state ->
                         chainCursor.call(position + 1)
-                        State(state.availables, state.chain.swap(position, position + 1)) }))
+                        state.moveDown(position)
+                    }))
                     .mergeWith(moveUp.withLatestFrom(state, { position, state ->
                         chainCursor.call(position - 1)
-                        State(state.availables, state.chain.swap(position, position - 1)) }))
+                        state.moveUp(position)
+                    }))
                     .doOnNext(state)
                     .ignoreElements())
             .share()
