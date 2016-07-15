@@ -5,17 +5,16 @@ import org.junit.Test
 import rx.observers.TestSubscriber
 
 class CounterTest {
-    val dut = Counter()
+    val dut = Counter(1)
     val currentSubscriber = TestSubscriber.create<Int>()
 
     @Before
     fun setUp() {
-        dut.current().subscribe(currentSubscriber)
+        dut.count().subscribe(currentSubscriber)
     }
 
     @Test
     fun upAndDown() {
-        dut.initialize(1)
         dut.onUp().call(Unit)
         dut.onUp().call(Unit)
         dut.onDown().call(Unit)

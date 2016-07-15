@@ -3,16 +3,12 @@ package humbleactivity.app.ui
 import android.app.Activity
 import android.os.Bundle
 import android.view.View
-import android.widget.ArrayAdapter
-import android.widget.ListView
 import android.widget.TextView
-import android.widget.Toast
 
 import com.jakewharton.rxbinding.view.RxView
 
 import butterknife.ButterKnife
 import com.jakewharton.rxbinding.widget.RxTextView
-import humbleactivity.app.HumbleApplication
 import humbleactivity.app.R
 import rx.subscriptions.CompositeSubscription
 
@@ -32,13 +28,10 @@ class CounterActivity : Activity() {
         val upView = ButterKnife.findById<View>(this, R.id.up)
         val downView = ButterKnife.findById<View>(this, R.id.down)
 
-        presenter = Counter()
-        subscriptions.add(presenter.current().map { it.toString() }.subscribe(RxTextView.text(currentView)))
-
+        presenter = Counter(0)
+        subscriptions.add(presenter.count().map { it.toString() }.subscribe(RxTextView.text(currentView)))
         subscriptions.add(RxView.clicks(upView).map { Unit }.subscribe(presenter.onUp()))
         subscriptions.add(RxView.clicks(downView).map { Unit }.subscribe(presenter.onDown()))
-
-        presenter.initialize(0)
     }
 
     override fun onDestroy() {
