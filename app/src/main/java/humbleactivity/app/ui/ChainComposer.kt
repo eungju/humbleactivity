@@ -1,6 +1,5 @@
 package humbleactivity.app.ui
 
-import com.jakewharton.rxrelay.BehaviorRelay
 import com.jakewharton.rxrelay.PublishRelay
 import humbleactivity.app.RxScheduling
 import humbleactivity.app.data.EffectorService
@@ -9,7 +8,6 @@ import humbleactivity.app.data.removeAt
 import humbleactivity.app.data.swap
 import rx.Observable
 import rx.functions.Action1
-
 import javax.inject.Inject
 
 class ChainComposer
@@ -17,6 +15,10 @@ class ChainComposer
 constructor(effectorService: EffectorService,
             rxScheduling: RxScheduling) {
     data class State(val availables: List<Filter>, val chain: List<Filter>) {
+        fun refresh(availables: List<Filter>): State {
+            return State(availables, emptyList())
+        }
+
         fun addToChain(position: Int): State {
             return copy(availables.removeAt(position), chain + availables[position])
         }
@@ -34,40 +36,39 @@ constructor(effectorService: EffectorService,
         }
     }
 
-    internal val state = BehaviorRelay.create<State>()
-    private val chainCursor = PublishRelay.create<Int>()
+    val _backdoor = PublishRelay.create<State>()
     private val refresh = PublishRelay.create<Unit>()
     private val addToChain = PublishRelay.create<Int>()
     private val removeFromChain = PublishRelay.create<Int>()
     private val moveUp = PublishRelay.create<Int>()
     private val moveDown = PublishRelay.create<Int>()
     private val loadError = PublishRelay.create<String>()
-    private val loadAvailables = refresh
-            .concatMap {
+    private val chainCursor = PublishRelay.create<Int>()
+    private val state = Observable.merge(
+            _backdoor.map { newState -> { state: State -> newState } },
+            refresh.concatMap {
                 effectorService.listFilters()
                         .observeOn(rxScheduling.ui)
                         .doOnError { throwable -> loadError.call(throwable.message!!) }
                         .onErrorResumeNext(Observable.empty())
-            }
-    private val stateUpdate = state
-            .mergeWith(loadAvailables.map { availables -> State(availables, emptyList()) }
-                    .mergeWith(addToChain.withLatestFrom(state, { position, state -> state.addToChain(position) }))
-                    .mergeWith(removeFromChain.withLatestFrom(state, { position, state -> state.removeFromChain(position) }))
-                    .mergeWith(moveDown.withLatestFrom(state, { position, state ->
-                        chainCursor.call(position + 1)
-                        state.moveDown(position)
-                    }))
-                    .mergeWith(moveUp.withLatestFrom(state, { position, state ->
-                        chainCursor.call(position - 1)
-                        state.moveUp(position)
-                    }))
-                    .doOnNext(state)
-                    .ignoreElements())
-            .share()
+                        .map { response -> { state: State -> state.refresh(response) } }
+            },
+            addToChain.map { position -> { state: State -> state.addToChain(position) } },
+            removeFromChain.map { position -> { state: State -> state.removeFromChain(position) } },
+            moveUp.map { position ->
+                chainCursor.call(position - 1);
+                { state: State -> state.moveUp(position) }
+            },
+            moveDown.map { position ->
+                chainCursor.call(position + 1);
+                { state: State -> state.moveDown(position) }
+            })
+            .scan(State(emptyList(), emptyList()), { state, action -> action(state) })
+            .cacheWithInitialCapacity(1)
 
-    fun availables(): Observable<List<Filter>> = stateUpdate.map { it.availables }
+    fun availables(): Observable<List<Filter>> = state.map { it.availables }
 
-    fun chain(): Observable<List<Filter>> = stateUpdate.map { it.chain }
+    fun chain(): Observable<List<Filter>> = state.map { it.chain }
 
     fun chainCursor(): Observable<Int> = chainCursor
 
@@ -82,9 +83,8 @@ constructor(effectorService: EffectorService,
     fun onMoveUp(): Action1<Int> = moveUp
 
     fun onMoveDown(): Action1<Int> = moveDown
-
+    
     fun initialize() {
-        state.call(State(emptyList(), emptyList()))
         refresh.call(Unit)
     }
 }

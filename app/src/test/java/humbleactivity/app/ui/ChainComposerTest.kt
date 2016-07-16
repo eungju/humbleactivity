@@ -75,20 +75,20 @@ class ChainComposerTest {
     @Test
     fun addToChain() {
         val filters = listOf(Filter("Reverb"), Filter("Distortion"))
-        dut.state.call(ChainComposer.State(filters, emptyList()))
+        dut._backdoor.call(ChainComposer.State(filters, emptyList()))
         dut.onAddToChain().call(0)
-        availablesSubscriber.assertValues(filters, filters.subList(1, filters.size))
-        chainSubscriber.assertValues(emptyList(), filters.subList(0, 1))
+        availablesSubscriber.assertValues(emptyList(), filters, filters.subList(1, filters.size))
+        chainSubscriber.assertValues(emptyList(), emptyList(), filters.subList(0, 1))
     }
 
     @Test
     fun removeFromChain() {
         val availables = listOf(Filter("Reverb"))
         val chain = listOf(Filter("Distortion"))
-        dut.state.call(ChainComposer.State(availables, chain))
+        dut._backdoor.call(ChainComposer.State(availables, chain))
         dut.onRemoveFromChain().call(0)
-        availablesSubscriber.assertValues(availables, availables + chain)
-        chainSubscriber.assertValues(chain, emptyList())
+        availablesSubscriber.assertValues(emptyList(), availables, availables + chain)
+        chainSubscriber.assertValues(emptyList(), chain, emptyList())
     }
 
     @Test
@@ -104,25 +104,25 @@ class ChainComposerTest {
         })
         dut.onRefresh().call(Unit)
         synchroniser.waitUntil(states.`is`("completed"), 1000)
-        availablesSubscriber.assertValues(filters)
-        chainSubscriber.assertValues(chain)
+        availablesSubscriber.assertValues(emptyList(), filters)
+        chainSubscriber.assertValues(emptyList(), chain)
     }
 
     @Test
     fun moveUpFilter() {
         val chain = listOf(Filter("Reverb"), Filter("Distortion"))
-        dut.state.call(ChainComposer.State(emptyList(), chain))
+        dut._backdoor.call(ChainComposer.State(emptyList(), chain))
         dut.onMoveUp().call(1)
-        chainSubscriber.assertValues(chain, chain.subList(1, chain.size) + chain[0])
+        chainSubscriber.assertValues(emptyList(), chain, chain.subList(1, chain.size) + chain[0])
         chainCursorMoveSubscriber.assertValues(0)
     }
 
     @Test
     fun moveDownFilter() {
         val chain = listOf(Filter("Reverb"), Filter("Distortion"))
-        dut.state.call(ChainComposer.State(emptyList(), chain))
+        dut._backdoor.call(ChainComposer.State(emptyList(), chain))
         dut.onMoveDown().call(0)
-        chainSubscriber.assertValues(chain, chain.subList(1, chain.size) + chain[0])
+        chainSubscriber.assertValues(emptyList(), chain, chain.subList(1, chain.size) + chain[0])
         chainCursorMoveSubscriber.assertValues(1)
     }
 }

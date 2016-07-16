@@ -16,6 +16,7 @@ class Counter(initial: Int) {
     private val state = up.map { { state: State -> state.up() } }
             .mergeWith(down.map { { state: State -> state.down() } })
             .scan(State(initial), { state, action -> action(state) })
+            .cacheWithInitialCapacity(1)
 
     fun count(): Observable<Int> = state.map { it.count }
 
