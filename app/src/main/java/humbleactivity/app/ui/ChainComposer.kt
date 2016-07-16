@@ -7,7 +7,6 @@ import humbleactivity.app.data.Filter
 import humbleactivity.app.data.removeAt
 import humbleactivity.app.data.swap
 import rx.Observable
-import rx.functions.Action1
 import javax.inject.Inject
 
 class ChainComposer
@@ -15,36 +14,26 @@ class ChainComposer
 constructor(effectorService: EffectorService,
             rxScheduling: RxScheduling) {
     data class State(val availables: List<Filter>, val chain: List<Filter>) {
-        fun refresh(availables: List<Filter>): State {
-            return State(availables, emptyList())
-        }
+        fun refresh(availables: List<Filter>): State = State(availables, emptyList())
 
-        fun addToChain(position: Int): State {
-            return copy(availables.removeAt(position), chain + availables[position])
-        }
+        fun addToChain(position: Int): State = copy(availables.removeAt(position), chain + availables[position])
 
-        fun removeFromChain(position: Int): State {
-            return copy(availables + chain[position], chain.removeAt(position))
-        }
+        fun removeFromChain(position: Int): State = copy(availables + chain[position], chain.removeAt(position))
 
-        fun moveDown(position: Int): State {
-            return copy(chain = chain.swap(position, position + 1))
-        }
+        fun moveDown(position: Int): State = copy(chain = chain.swap(position, position + 1))
 
-        fun moveUp(position: Int): State {
-            return copy(chain = chain.swap(position, position - 1))
-        }
+        fun moveUp(position: Int): State = copy(chain = chain.swap(position, position - 1))
     }
 
     val _backdoor = PublishRelay.create<State>()
-    private val refresh = PublishRelay.create<Unit>()
-    private val addToChain = PublishRelay.create<Int>()
-    private val removeFromChain = PublishRelay.create<Int>()
-    private val moveUp = PublishRelay.create<Int>()
-    private val moveDown = PublishRelay.create<Int>()
-    private val loadError = PublishRelay.create<String>()
-    private val chainCursor = PublishRelay.create<Int>()
-    private val state = Observable.merge(
+    val refresh = PublishRelay.create<Unit>()
+    val addToChain = PublishRelay.create<Int>()
+    val removeFromChain = PublishRelay.create<Int>()
+    val moveUp = PublishRelay.create<Int>()
+    val moveDown = PublishRelay.create<Int>()
+    val loadError = PublishRelay.create<String>()
+    val chainCursor = PublishRelay.create<Int>()
+    val state = Observable.merge(
             _backdoor.map { newState -> { state: State -> newState } },
             refresh.concatMap {
                 effectorService.listFilters()
@@ -65,25 +54,9 @@ constructor(effectorService: EffectorService,
             })
             .scan(State(emptyList(), emptyList()), { state, action -> action(state) })
             .cacheWithInitialCapacity(1)
+    val availables: Observable<List<Filter>> = state.map { it.availables }
+    val chain: Observable<List<Filter>> = state.map { it.chain }
 
-    fun availables(): Observable<List<Filter>> = state.map { it.availables }
-
-    fun chain(): Observable<List<Filter>> = state.map { it.chain }
-
-    fun chainCursor(): Observable<Int> = chainCursor
-
-    fun loadError(): Observable<String> = loadError
-
-    fun onRefresh(): Action1<Unit> = refresh
-
-    fun onAddToChain(): Action1<Int> = addToChain
-
-    fun onRemoveFromChain(): Action1<Int> = removeFromChain
-
-    fun onMoveUp(): Action1<Int> = moveUp
-
-    fun onMoveDown(): Action1<Int> = moveDown
-    
     fun initialize() {
         refresh.call(Unit)
     }
