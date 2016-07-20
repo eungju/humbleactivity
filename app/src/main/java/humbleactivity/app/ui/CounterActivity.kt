@@ -29,9 +29,9 @@ class CounterActivity : Activity() {
         val downView = ButterKnife.findById<View>(this, R.id.down)
 
         presenter = Counter(0)
-        subscriptions.add(presenter.count().map { it.toString() }.subscribe(RxTextView.text(currentView)))
-        subscriptions.add(RxView.clicks(upView).map { Unit }.subscribe(presenter.onUp()))
-        subscriptions.add(RxView.clicks(downView).map { Unit }.subscribe(presenter.onDown()))
+        subscriptions.add(presenter.count.map { it.toString() }.subscribe(RxTextView.text(currentView)))
+        subscriptions.add(RxView.clicks(upView).map { Unit }.subscribe(presenter.up))
+        subscriptions.add(RxView.clicks(downView).map { Unit }.subscribe(presenter.down))
     }
 
     override fun onDestroy() {

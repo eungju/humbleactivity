@@ -10,14 +10,14 @@ class CounterTest {
 
     @Before
     fun setUp() {
-        dut.count().subscribe(currentSubscriber)
+        dut.count.subscribe(currentSubscriber)
     }
 
     @Test
     fun upAndDown() {
-        dut.onUp().call(Unit)
-        dut.onUp().call(Unit)
-        dut.onDown().call(Unit)
+        dut.up.call(Unit)
+        dut.up.call(Unit)
+        dut.down.call(Unit)
         currentSubscriber.assertValues(1, 2, 3, 2)
     }
 }
