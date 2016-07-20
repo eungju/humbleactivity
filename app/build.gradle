@@ -1,5 +1,6 @@
 buildscript {
     ext.kotlin_version = "1.0.3"
+    ext.retrofit2_version = "2.1.0"
     repositories {
         jcenter()
     }
@@ -54,9 +55,9 @@ dependencies {
     compile 'io.reactivex:rxandroid:1.2.1'
     compile 'com.jakewharton.rxrelay:rxrelay:1.1.0'
     compile 'com.jakewharton.rxbinding:rxbinding:0.4.0'
-    compile 'com.squareup.retrofit2:retrofit:2.0.2'
-    compile 'com.squareup.retrofit2:converter-moshi:2.0.2'
-    compile 'com.squareup.retrofit2:adapter-rxjava:2.0.2'
+    compile "com.squareup.retrofit2:retrofit:$retrofit2_version"
+    compile "com.squareup.retrofit2:converter-moshi:$retrofit2_version"
+    compile "com.squareup.retrofit2:adapter-rxjava:$retrofit2_version"
     compile 'com.google.dagger:dagger:2.4'
     apt 'com.google.dagger:dagger-compiler:2.4'
 
