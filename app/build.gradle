@@ -1,6 +1,7 @@
 buildscript {
     ext.kotlin_version = "1.0.3"
     ext.retrofit2_version = "2.1.0"
+    ext.dagger2_version = "2.5"
     repositories {
         jcenter()
     }
@@ -58,8 +59,8 @@ dependencies {
     compile "com.squareup.retrofit2:retrofit:$retrofit2_version"
     compile "com.squareup.retrofit2:converter-moshi:$retrofit2_version"
     compile "com.squareup.retrofit2:adapter-rxjava:$retrofit2_version"
-    compile 'com.google.dagger:dagger:2.4'
-    apt 'com.google.dagger:dagger-compiler:2.4'
+    compile "com.google.dagger:dagger:$dagger2_version"
+    apt "com.google.dagger:dagger-compiler:$dagger2_version"
 
     testCompile 'junit:junit:4.12'
     testCompile 'org.jmock:jmock-junit4:2.8.2'
