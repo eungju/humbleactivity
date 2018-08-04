@@ -2,6 +2,8 @@ buildscript {
     ext.kotlin_version = "1.2.60"
     ext.retrofit2_version = "2.4.0"
     ext.dagger2_version = "2.16"
+    ext.junit_jupiter_version = "5.2.0"
+    ext.mockito_version = "2.21.0"
     repositories {
         jcenter()
         google()
@@ -55,6 +57,10 @@ dependencies {
     implementation "com.squareup.retrofit2:adapter-rxjava2:$retrofit2_version"
     implementation "com.google.dagger:dagger:$dagger2_version"
     kapt "com.google.dagger:dagger-compiler:$dagger2_version"
-    testImplementation 'junit:junit:4.12'
-    testImplementation 'org.jmock:jmock-junit4:2.8.2'
+
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version"
+    testImplementation "org.mockito:mockito-inline:$mockito_version"
+    testImplementation "org.mockito:mockito-junit-jupiter:$mockito_version"
+    testImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:2.0.0-RC1"
 }

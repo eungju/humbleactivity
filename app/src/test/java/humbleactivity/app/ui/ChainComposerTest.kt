@@ -1,34 +1,28 @@
 package humbleactivity.app.ui
 
+import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.stub
 import humbleactivity.app.data.EffectorService
 import humbleactivity.app.data.Filter
 import io.reactivex.Observable
 import io.reactivex.observers.TestObserver
-import org.jmock.Expectations
-import org.jmock.auto.Mock
-import org.jmock.integration.junit4.JUnitRuleMockery
-import org.jmock.lib.concurrent.Synchroniser
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.mockito.junit.jupiter.MockitoSettings
 import java.io.IOException
 
+@MockitoSettings
 class ChainComposerTest {
-    internal var synchroniser = Synchroniser()
-    @Rule @JvmField var mockery: JUnitRuleMockery = object : JUnitRuleMockery() {
-        init {
-            setThreadingPolicy(synchroniser)
-        }
-    }
-    @Mock lateinit var effectorService: EffectorService
+    lateinit var effectorService: EffectorService
     lateinit var dut: ChainComposer
     lateinit var availablesSubscriber: TestObserver<List<Filter>>
     lateinit var chainSubscriber: TestObserver<List<Filter>>
     lateinit var chainCursorMoveSubscriber: TestObserver<Int>
     lateinit var loadErrorSubscriber: TestObserver<String>
 
-    @Before
+    @BeforeEach
     fun setUp() {
+        effectorService = mock()
         dut = ChainComposer(effectorService)
         availablesSubscriber = dut.availables.test()
         chainSubscriber = dut.chain.test()
@@ -40,15 +34,10 @@ class ChainComposerTest {
     fun initialization() {
         val filters = listOf(Filter("Reverb"))
         val chain = emptyList<Filter>()
-        val states = mockery.states("load")
-        mockery.checking(object : Expectations() {
-            init {
-                oneOf(effectorService).listFilters(); will(returnValue(Observable.just(filters)))
-                then(states.`is`("completed"))
-            }
-        })
+        stub {
+            on(effectorService.listFilters()).thenReturn(Observable.just(filters))
+        }
         dut.initialize()
-        synchroniser.waitUntil(states.`is`("completed"))
         availablesSubscriber.assertValues(emptyList(), filters)
         chainSubscriber.assertValues(emptyList(), chain)
     }
@@ -56,15 +45,10 @@ class ChainComposerTest {
     @Test
     fun initializationError() {
         val errorMessage = "error"
-        val states = mockery.states("load")
-        mockery.checking(object : Expectations() {
-            init {
-                oneOf(effectorService).listFilters(); will(returnValue(Observable.error<Any>(IOException(errorMessage))))
-                then(states.`is`("completed"))
-            }
-        })
+        stub {
+            on(effectorService.listFilters()).thenReturn(Observable.error(IOException(errorMessage)))
+        }
         dut.initialize()
-        synchroniser.waitUntil(states.`is`("completed"))
         availablesSubscriber.assertValues(emptyList())
         chainSubscriber.assertValues(emptyList())
         loadErrorSubscriber.assertValue(errorMessage)
@@ -93,15 +77,10 @@ class ChainComposerTest {
     fun refresh() {
         val filters = listOf(Filter("Reverb"))
         val chain = emptyList<Filter>()
-        val states = mockery.states("load")
-        mockery.checking(object : Expectations() {
-            init {
-                oneOf(effectorService).listFilters(); will(returnValue(Observable.just(filters)))
-                then(states.`is`("completed"))
-            }
-        })
+        stub {
+            on(effectorService.listFilters()).thenReturn(Observable.just(filters))
+        }
         dut.refresh.accept(Unit)
-        synchroniser.waitUntil(states.`is`("completed"), 1000)
         availablesSubscriber.assertValues(emptyList(), filters)
         chainSubscriber.assertValues(emptyList(), chain)
     }

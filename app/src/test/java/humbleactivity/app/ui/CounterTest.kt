@@ -1,7 +1,6 @@
 package humbleactivity.app.ui
 
-import io.reactivex.schedulers.Schedulers
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class CounterTest {
     val dut = Counter(1)
