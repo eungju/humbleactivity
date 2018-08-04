@@ -1,17 +1,11 @@
 package humbleactivity.app.ui
 
-import io.reactivex.observers.TestObserver
-import org.junit.Before
+import io.reactivex.schedulers.Schedulers
 import org.junit.Test
 
 class CounterTest {
     val dut = Counter(1)
-    lateinit var currentSubscriber: TestObserver<Int>
-
-    @Before
-    fun setUp() {
-        currentSubscriber = dut.count.test()
-    }
+    val currentSubscriber = dut.count.test()
 
     @Test
     fun upAndDown() {

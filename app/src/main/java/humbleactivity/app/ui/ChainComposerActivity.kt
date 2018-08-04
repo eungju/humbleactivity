@@ -11,12 +11,14 @@ import butterknife.ButterKnife
 import com.jakewharton.rxbinding2.view.RxView
 import humbleactivity.app.HumbleApplication
 import humbleactivity.app.R
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 
 import javax.inject.Inject
 
 class ChainComposerActivity : Activity() {
-    @Inject lateinit var presenter: ChainComposer
+    @Inject
+    lateinit var presenter: ChainComposer
     private lateinit var subscriptions: CompositeDisposable
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,20 +40,28 @@ class ChainComposerActivity : Activity() {
         val moveUpView = ButterKnife.findById<View>(this, R.id.move_up)
 
         //Output signals
-        subscriptions.add(presenter.availables.subscribe { filters ->
-            availablesAdapter.clear()
-            availablesAdapter.addAll(filters.map { it.name })
-        })
-        subscriptions.add(presenter.chain.subscribe { filters ->
-            chainAdapter.clear()
-            chainAdapter.addAll(filters.map { it.name })
-        })
-        subscriptions.add(presenter.chainCursor.subscribe { position ->
-            chainView.setItemChecked(position, true)
-        })
-        subscriptions.add(presenter.loadError.subscribe { message ->
-            Toast.makeText(this, message, Toast.LENGTH_LONG).show()
-        })
+        subscriptions.add(presenter.availables
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { filters ->
+                    availablesAdapter.clear()
+                    availablesAdapter.addAll(filters.map { it.name })
+                })
+        subscriptions.add(presenter.chain
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { filters ->
+                    chainAdapter.clear()
+                    chainAdapter.addAll(filters.map { it.name })
+                })
+        subscriptions.add(presenter.chainCursor
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { position ->
+                    chainView.setItemChecked(position, true)
+                })
+        subscriptions.add(presenter.loadError
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { message ->
+                    Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+                })
         //Input signals
         subscriptions.add(RxView.clicks(refreshView).map { Unit }
                 .subscribe(presenter.refresh))
@@ -64,7 +74,7 @@ class ChainComposerActivity : Activity() {
         subscriptions.add(RxView.clicks(moveUpView).map { chainView.checkedItemPosition }
                 .filter { p -> p >= 1 && p < chainView.count }
                 .subscribe(presenter.moveUp))
-        subscriptions.add(RxView.clicks(moveDownView).map { ignore -> chainView.checkedItemPosition }
+        subscriptions.add(RxView.clicks(moveDownView).map { chainView.checkedItemPosition }
                 .filter { p -> p >= 0 && p < chainView.count - 1 }
                 .subscribe(presenter.moveDown))
 

@@ -9,12 +9,14 @@ import butterknife.ButterKnife
 import com.jakewharton.rxbinding2.view.RxView
 import com.jakewharton.rxbinding2.widget.RxTextView
 import humbleactivity.app.R
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 
 import javax.inject.Inject
 
 class CounterActivity : Activity() {
-    @Inject lateinit var presenter: Counter
+    @Inject
+    lateinit var presenter: Counter
     private lateinit var subscriptions: CompositeDisposable
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,7 +30,9 @@ class CounterActivity : Activity() {
         val downView = ButterKnife.findById<View>(this, R.id.down)
 
         presenter = Counter(0)
-        subscriptions.add(presenter.count.map { it.toString() }.subscribe(RxTextView.text(currentView)))
+        subscriptions.add(presenter.count.map { it.toString() }
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(RxTextView.text(currentView)))
         subscriptions.add(RxView.clicks(upView).map { Unit }.subscribe(presenter.up))
         subscriptions.add(RxView.clicks(downView).map { Unit }.subscribe(presenter.down))
     }

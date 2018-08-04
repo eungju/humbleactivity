@@ -1,11 +1,9 @@
 package humbleactivity.app.ui
 
-import humbleactivity.app.RxScheduling
 import humbleactivity.app.data.EffectorService
 import humbleactivity.app.data.Filter
 import io.reactivex.Observable
 import io.reactivex.observers.TestObserver
-import io.reactivex.schedulers.Schedulers
 import org.jmock.Expectations
 import org.jmock.auto.Mock
 import org.jmock.integration.junit4.JUnitRuleMockery
@@ -31,7 +29,7 @@ class ChainComposerTest {
 
     @Before
     fun setUp() {
-        dut = ChainComposer(effectorService, RxScheduling(Schedulers.trampoline(), Schedulers.trampoline()))
+        dut = ChainComposer(effectorService)
         availablesSubscriber = dut.availables.test()
         chainSubscriber = dut.chain.test()
         chainCursorMoveSubscriber = dut.chainCursor.test()
