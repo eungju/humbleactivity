@@ -3,6 +3,9 @@ package humbleactivity.app.ui
 import humbleactivity.app.RxScheduling
 import humbleactivity.app.data.EffectorService
 import humbleactivity.app.data.Filter
+import io.reactivex.Observable
+import io.reactivex.observers.TestObserver
+import io.reactivex.schedulers.Schedulers
 import org.jmock.Expectations
 import org.jmock.auto.Mock
 import org.jmock.integration.junit4.JUnitRuleMockery
@@ -10,9 +13,6 @@ import org.jmock.lib.concurrent.Synchroniser
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import rx.Observable
-import rx.observers.TestSubscriber
-import rx.schedulers.Schedulers
 import java.io.IOException
 
 class ChainComposerTest {
@@ -24,18 +24,18 @@ class ChainComposerTest {
     }
     @Mock lateinit var effectorService: EffectorService
     lateinit var dut: ChainComposer
-    val availablesSubscriber = TestSubscriber.create<List<Filter>>()
-    val chainSubscriber = TestSubscriber.create<List<Filter>>()
-    val chainCursorMoveSubscriber = TestSubscriber.create<Int>()
-    val loadErrorSubscriber = TestSubscriber.create<String>()
+    lateinit var availablesSubscriber: TestObserver<List<Filter>>
+    lateinit var chainSubscriber: TestObserver<List<Filter>>
+    lateinit var chainCursorMoveSubscriber: TestObserver<Int>
+    lateinit var loadErrorSubscriber: TestObserver<String>
 
     @Before
     fun setUp() {
-        dut = ChainComposer(effectorService, RxScheduling(Schedulers.trampoline(), Schedulers.immediate()))
-        dut.availables.subscribe(availablesSubscriber)
-        dut.chain.subscribe(chainSubscriber)
-        dut.chainCursor.subscribe(chainCursorMoveSubscriber)
-        dut.loadError.subscribe(loadErrorSubscriber)
+        dut = ChainComposer(effectorService, RxScheduling(Schedulers.trampoline(), Schedulers.trampoline()))
+        availablesSubscriber = dut.availables.test()
+        chainSubscriber = dut.chain.test()
+        chainCursorMoveSubscriber = dut.chainCursor.test()
+        loadErrorSubscriber = dut.loadError.test()
     }
 
     @Test
@@ -75,8 +75,8 @@ class ChainComposerTest {
     @Test
     fun addToChain() {
         val filters = listOf(Filter("Reverb"), Filter("Distortion"))
-        dut._backdoor.call(ChainComposer.State(filters, emptyList()))
-        dut.addToChain.call(0)
+        dut._backdoor.accept(ChainComposer.State(filters, emptyList()))
+        dut.addToChain.accept(0)
         availablesSubscriber.assertValues(emptyList(), filters, filters.subList(1, filters.size))
         chainSubscriber.assertValues(emptyList(), emptyList(), filters.subList(0, 1))
     }
@@ -85,8 +85,8 @@ class ChainComposerTest {
     fun removeFromChain() {
         val availables = listOf(Filter("Reverb"))
         val chain = listOf(Filter("Distortion"))
-        dut._backdoor.call(ChainComposer.State(availables, chain))
-        dut.removeFromChain.call(0)
+        dut._backdoor.accept(ChainComposer.State(availables, chain))
+        dut.removeFromChain.accept(0)
         availablesSubscriber.assertValues(emptyList(), availables, availables + chain)
         chainSubscriber.assertValues(emptyList(), chain, emptyList())
     }
@@ -102,7 +102,7 @@ class ChainComposerTest {
                 then(states.`is`("completed"))
             }
         })
-        dut.refresh.call(Unit)
+        dut.refresh.accept(Unit)
         synchroniser.waitUntil(states.`is`("completed"), 1000)
         availablesSubscriber.assertValues(emptyList(), filters)
         chainSubscriber.assertValues(emptyList(), chain)
@@ -111,8 +111,8 @@ class ChainComposerTest {
     @Test
     fun moveUpFilter() {
         val chain = listOf(Filter("Reverb"), Filter("Distortion"))
-        dut._backdoor.call(ChainComposer.State(emptyList(), chain))
-        dut.moveUp.call(1)
+        dut._backdoor.accept(ChainComposer.State(emptyList(), chain))
+        dut.moveUp.accept(1)
         chainSubscriber.assertValues(emptyList(), chain, chain.subList(1, chain.size) + chain[0])
         chainCursorMoveSubscriber.assertValues(0)
     }
@@ -120,8 +120,8 @@ class ChainComposerTest {
     @Test
     fun moveDownFilter() {
         val chain = listOf(Filter("Reverb"), Filter("Distortion"))
-        dut._backdoor.call(ChainComposer.State(emptyList(), chain))
-        dut.moveDown.call(0)
+        dut._backdoor.accept(ChainComposer.State(emptyList(), chain))
+        dut.moveDown.accept(0)
         chainSubscriber.assertValues(emptyList(), chain, chain.subList(1, chain.size) + chain[0])
         chainCursorMoveSubscriber.assertValues(1)
     }

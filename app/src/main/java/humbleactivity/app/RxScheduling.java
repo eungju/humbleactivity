@@ -1,6 +1,6 @@
 package humbleactivity.app;
 
-import rx.Scheduler;
+import io.reactivex.Scheduler;
 
 public class RxScheduling {
     public final Scheduler io;

@@ -1,6 +1,6 @@
 package humbleactivity.app.data
 
-import rx.Observable
+import io.reactivex.Observable
 import java.util.concurrent.TimeUnit
 
 internal class DummyEffectorService : EffectorService {

@@ -5,23 +5,22 @@ import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 
-import com.jakewharton.rxbinding.view.RxView
-
 import butterknife.ButterKnife
-import com.jakewharton.rxbinding.widget.RxTextView
+import com.jakewharton.rxbinding2.view.RxView
+import com.jakewharton.rxbinding2.widget.RxTextView
 import humbleactivity.app.R
-import rx.subscriptions.CompositeSubscription
+import io.reactivex.disposables.CompositeDisposable
 
 import javax.inject.Inject
 
 class CounterActivity : Activity() {
     @Inject lateinit var presenter: Counter
-    private lateinit var subscriptions: CompositeSubscription
+    private lateinit var subscriptions: CompositeDisposable
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        subscriptions = CompositeSubscription()
+        subscriptions = CompositeDisposable()
 
         setContentView(R.layout.activity_counter)
         val currentView = ButterKnife.findById<TextView>(this, R.id.current)
@@ -35,7 +34,7 @@ class CounterActivity : Activity() {
     }
 
     override fun onDestroy() {
-        subscriptions.unsubscribe()
+        subscriptions.dispose()
         super.onDestroy()
     }
 }

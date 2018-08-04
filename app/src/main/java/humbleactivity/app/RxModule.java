@@ -2,8 +2,8 @@ package humbleactivity.app;
 
 import dagger.Module;
 import dagger.Provides;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 
 import javax.inject.Singleton;
 

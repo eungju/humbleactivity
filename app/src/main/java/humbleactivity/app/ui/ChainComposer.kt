@@ -1,12 +1,12 @@
 package humbleactivity.app.ui
 
-import com.jakewharton.rxrelay.PublishRelay
+import com.jakewharton.rxrelay2.PublishRelay
 import humbleactivity.app.RxScheduling
 import humbleactivity.app.data.EffectorService
 import humbleactivity.app.data.Filter
 import humbleactivity.app.data.removeAt
 import humbleactivity.app.data.swap
-import rx.Observable
+import io.reactivex.Observable
 import javax.inject.Inject
 
 class ChainComposer
@@ -33,31 +33,31 @@ constructor(effectorService: EffectorService,
     val moveDown = PublishRelay.create<Int>()
     val loadError = PublishRelay.create<String>()
     val chainCursor = PublishRelay.create<Int>()
-    val state = Observable.merge(
+    val state = Observable.mergeArray(
             _backdoor.map { newState -> { state: State -> newState } },
             refresh.concatMap {
                 effectorService.listFilters()
                         .observeOn(rxScheduling.ui)
-                        .doOnError { throwable -> loadError.call(throwable.message!!) }
+                        .doOnError { throwable -> loadError.accept(throwable.message!!) }
                         .onErrorResumeNext(Observable.empty())
                         .map { response -> { state: State -> state.refresh(response) } }
             },
             addToChain.map { position -> { state: State -> state.addToChain(position) } },
             removeFromChain.map { position -> { state: State -> state.removeFromChain(position) } },
             moveUp.map { position ->
-                chainCursor.call(position - 1);
+                chainCursor.accept(position - 1);
                 { state: State -> state.moveUp(position) }
             },
             moveDown.map { position ->
-                chainCursor.call(position + 1);
+                chainCursor.accept(position + 1);
                 { state: State -> state.moveDown(position) }
             })
-            .scan(State(emptyList(), emptyList()), { state, action -> action(state) })
+            .scan(State(emptyList(), emptyList()), { state: State, action: (State) -> State -> action(state) })
             .cacheWithInitialCapacity(1)
     val availables: Observable<List<Filter>> = state.map { it.availables }
     val chain: Observable<List<Filter>> = state.map { it.chain }
 
     fun initialize() {
-        refresh.call(Unit)
+        refresh.accept(Unit)
     }
 }

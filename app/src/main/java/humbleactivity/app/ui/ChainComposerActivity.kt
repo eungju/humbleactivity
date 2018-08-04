@@ -7,23 +7,22 @@ import android.widget.ArrayAdapter
 import android.widget.ListView
 import android.widget.Toast
 
-import com.jakewharton.rxbinding.view.RxView
-
 import butterknife.ButterKnife
+import com.jakewharton.rxbinding2.view.RxView
 import humbleactivity.app.HumbleApplication
 import humbleactivity.app.R
-import rx.subscriptions.CompositeSubscription
+import io.reactivex.disposables.CompositeDisposable
 
 import javax.inject.Inject
 
 class ChainComposerActivity : Activity() {
     @Inject lateinit var presenter: ChainComposer
-    private lateinit var subscriptions: CompositeSubscription
+    private lateinit var subscriptions: CompositeDisposable
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         HumbleApplication.get(this).component().inject(this)
-        subscriptions = CompositeSubscription()
+        subscriptions = CompositeDisposable()
 
         setContentView(R.layout.activity_chain_composer)
         val availablesView = ButterKnife.findById<ListView>(this, R.id.availables)
@@ -73,7 +72,7 @@ class ChainComposerActivity : Activity() {
     }
 
     override fun onDestroy() {
-        subscriptions.unsubscribe()
+        subscriptions.dispose()
         super.onDestroy()
     }
 }

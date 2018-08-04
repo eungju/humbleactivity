@@ -1,6 +1,6 @@
 package humbleactivity.app.ui
 
-import com.jakewharton.rxrelay.PublishRelay
+import com.jakewharton.rxrelay2.PublishRelay
 
 class Counter(initial: Int) {
     val up = PublishRelay.create<Unit>()
