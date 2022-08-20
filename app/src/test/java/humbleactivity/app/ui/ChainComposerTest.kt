@@ -1,7 +1,5 @@
 package humbleactivity.app.ui
 
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.stub
 import humbleactivity.app.data.EffectorService
 import humbleactivity.app.data.Filter
 import io.reactivex.Observable
@@ -9,6 +7,8 @@ import io.reactivex.observers.TestObserver
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.junit.jupiter.MockitoSettings
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.stub
 import java.io.IOException
 
 @MockitoSettings
